@@ -62,3 +62,5 @@ check_graficos.php
 !start-all.ps1
 !stop-all.ps1
 !status.ps1
+# Backups temporarios
+*.bak
