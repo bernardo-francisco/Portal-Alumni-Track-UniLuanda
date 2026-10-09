@@ -1,0 +1,1042 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| CONTROLLERS - AUTENTICAÇÃO
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Admin\AdminEmpresaController;
+
+/*
+|--------------------------------------------------------------------------
+| CONTROLLERS - ADMIN
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EgressoController as AdminEgressoController;
+use App\Http\Controllers\Admin\UnidadeOrganicaController;
+use App\Http\Controllers\Admin\CursoController;
+use App\Http\Controllers\Admin\OportunidadeController;
+use App\Http\Controllers\Admin\EventoController as AdminEventoController;
+use App\Http\Controllers\Admin\RelatorioController;
+use App\Http\Controllers\Admin\MapaController as AdminMapaController;
+use App\Http\Controllers\Admin\RedeController;
+use App\Http\Controllers\Admin\MensagemController as AdminMensagemController;
+use App\Http\Controllers\Admin\PerfilController as AdminPerfilController;
+use App\Http\Controllers\Admin\MuralController as AdminMuralController;
+use App\Http\Controllers\Admin\PesquisaController as AdminPesquisaController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\ServicoController as AdminServicoController;
+use App\Http\Controllers\Admin\FeedController as AdminFeedController;
+use App\Http\Controllers\Admin\NotificacaoController as AdminNotificacaoController;
+use App\Http\Controllers\Admin\ValidacaoEgressosController;
+use App\Http\Controllers\Admin\ChatbotController as AdminChatbotController;
+use App\Http\Controllers\Admin\VideoCallController as AdminVideoCallController;
+use App\Http\Controllers\Admin\ContactoAlumniController as AdminContactoAlumniController;
+use App\Http\Controllers\Admin\CandidaturaController as AdminCandidaturaController;
+use App\Http\Controllers\Admin\ExportController as AdminExportController;
+use App\Http\Controllers\VerificacaoController;
+
+/*
+|--------------------------------------------------------------------------
+| CONTROLLERS - EMPRESA
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\Empresa\EmpresaDashboardController;
+use App\Http\Controllers\Empresa\EmpresaOportunidadeController;
+use App\Http\Controllers\Empresa\EmpresaCandidaturaController;
+use App\Http\Controllers\Empresa\NotificacaoController;
+
+
+/*
+|--------------------------------------------------------------------------
+| CONTROLLERS - EGRESSO
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\Egresso\DashboardController as EgressoDashboardController;
+use App\Http\Controllers\Egresso\PerfilController;
+use App\Http\Controllers\Egresso\LocalizacaoController;
+use App\Http\Controllers\Egresso\ProfissionalController;
+use App\Http\Controllers\Egresso\RedeContactosController;
+use App\Http\Controllers\Egresso\MensagemController;
+use App\Http\Controllers\Egresso\EventoController as EgressoEventoController;
+use App\Http\Controllers\Egresso\OportunidadeController as EgressoOportunidadeController;
+use App\Http\Controllers\Egresso\FeedController;
+use App\Http\Controllers\Egresso\MapaController as EgressoMapaController;
+use App\Http\Controllers\Egresso\EgressoController as EgressoPerfilPublicoController;
+use App\Http\Controllers\Egresso\MuralController as EgressoMuralController;
+use App\Http\Controllers\Egresso\PesquisaController as EgressoPesquisaController;
+use App\Http\Controllers\Egresso\FeedbackController as EgressoFeedbackController;
+use App\Http\Controllers\Egresso\ServicoController as EgressoServicoController;
+use App\Http\Controllers\Egresso\NotificacaoController as EgressoNotificacaoController;
+use App\Http\Controllers\Egresso\ChatbotController as EgressoChatbotController;
+use App\Http\Controllers\Egresso\CandidaturaController;
+use App\Http\Controllers\Egresso\VideoCallController;
+use App\Http\Controllers\Egresso\CertificadoController;
+use App\Http\Controllers\Egresso\BuscaController;
+
+/*
+|--------------------------------------------------------------------------
+| CONTROLLER - HOME
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\HomeController;
+
+/*==========================================================================
+|                                                                          |
+|                         ROTAS PÚBLICAS                                   |
+|                                                                          |
+==========================================================================*/
+
+// ============================================================
+// 🏠 HOME PAGE
+// ============================================================
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// ============================================================
+// 🏠 DASHBOARD
+// ============================================================
+
+Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+
+Route::get('/pesquisar/egressos-publicos', [HomeController::class, 'listarEgressosPublicos'])
+    ->middleware('throttle:60,1')
+    ->name('pesquisar.egressos-publicos');
+
+Route::get('/pesquisar/egressos-filtros', [HomeController::class, 'filtrosEgressos'])
+    ->middleware('throttle:60,1')
+    ->name('pesquisar.egressos-filtros');
+
+// ============================================================
+// 🔐 AUTENTICAÇÃO
+// ============================================================
+
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// ============================================================
+// 📝 REGISTO
+// ============================================================
+
+Route::get('/registar', [RegisterController::class, 'showRegisterForm'])->name('register');
+Route::post('/registar', [RegisterController::class, 'register'])->name('register.post');
+Route::post('/verificar-processo', [RegisterController::class, 'verificarNumeroProcesso'])
+    ->name('verificar.processo');
+
+// ============================================================
+// 👤 PERFIL PÚBLICO
+// ============================================================
+
+Route::get('/perfil', [ProfileController::class, 'index'])->name('profile');
+
+// ============================================================
+// 🔑 RECUPERAÇÃO DE SENHA
+// ============================================================
+
+Route::get('/recuperar-senha', [ForgotPasswordController::class, 'showLinkRequestForm'])
+    ->middleware('guest')
+    ->name('password.request');
+
+Route::post('/recuperar-senha', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+    ->middleware('guest')
+    ->name('password.email');
+
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])
+    ->middleware('guest')
+    ->name('password.reset');
+
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])
+    ->middleware('guest')
+    ->name('password.update');
+
+// ============================================================
+// 🔐 VERIFICAÇÃO DE DOCUMENTOS (PÚBLICO)
+// ============================================================
+
+Route::get('/verificar', [VerificacaoController::class, 'index'])
+    ->name('verificacao.index');
+
+Route::get('/verificar/{codigo}', [VerificacaoController::class, 'verificar'])
+    ->name('verificacao.verificar');
+
+// ============================================================
+// 📧 CONTACTO / APOIO AO ALUMNI (PÚBLICO)
+// ============================================================
+
+Route::post('/apoio-alumni/contacto', [HomeController::class, 'contacto'])
+    ->name('apoio.alumni.contacto');
+
+
+/*==========================================================================
+|                                                                          |
+|                         ROTAS PROTEGIDAS                                 |
+|                                                                          |
+==========================================================================*/
+
+Route::middleware(['auth'])->group(function () {
+
+    /*======================================================================
+    |                                                                      |
+    |                         ROTAS PARA EGRESSOS                          |
+    |                                                                      |
+    ======================================================================*/
+
+    Route::prefix('egresso')
+        ->name('egresso.')
+        ->middleware(['check.egresso'])
+        ->group(function () {
+
+        // ========================================================
+        // 📊 DASHBOARD
+        // ========================================================
+
+        Route::get('/dashboard', [EgressoDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // ========================================================
+        // 🔍 PESQUISA GLOBAL
+        // ========================================================
+
+        Route::get('/pesquisar', [EgressoDashboardController::class, 'pesquisar'])
+            ->name('pesquisar');
+
+        // ========================================================
+        // 👤 PERFIL
+        // ========================================================
+
+        Route::get('/perfil', [PerfilController::class, 'index'])
+            ->name('perfil');
+
+        Route::get('/perfil/editar', [PerfilController::class, 'edit'])
+            ->name('perfil.editar');
+
+        Route::put('/perfil', [PerfilController::class, 'update'])
+            ->name('perfil.update');
+
+        // ========================================================
+        // 📞 CHAMADAS DE VÍDEO/VOZ (PeerJS)
+        // ========================================================
+
+        Route::get('/video-call/verificar', [VideoCallController::class, 'verificar'])
+            ->name('video-call.verificar');
+
+        Route::post('/video-call/iniciar', [VideoCallController::class, 'iniciar'])
+            ->name('video-call.iniciar');
+
+        Route::post('/video-call/aceitar', [VideoCallController::class, 'aceitar'])
+            ->name('video-call.aceitar');
+
+        Route::post('/video-call/recusar', [VideoCallController::class, 'recusar'])
+            ->name('video-call.recusar');
+
+        Route::post('/video-call/sinal', [VideoCallController::class, 'sinal'])
+            ->name('video-call.sinal');
+
+        Route::post('/video-call/estado', [VideoCallController::class, 'estado'])
+            ->name('video-call.estado');
+
+        Route::post('/video-call/encerrar', [VideoCallController::class, 'encerrar'])
+            ->name('video-call.encerrar');
+
+        Route::get('/video-call/{roomId}', [VideoCallController::class, 'sala'])
+            ->name('video-call.sala');
+         Route::post('/video-call/registar-peer', [VideoCallController::class, 'registarPeer'])
+            ->name('video-call.registar-peer');
+
+        // ========================================================
+        // 📍 LOCALIZAÇÃO
+        // ========================================================
+
+        Route::get('/localizacao', [LocalizacaoController::class, 'index'])
+            ->name('localizacao');
+
+        Route::get('/localizacao/criar', [LocalizacaoController::class, 'create'])
+            ->name('localizacao.create');
+
+        Route::post('/localizacao', [LocalizacaoController::class, 'store'])
+            ->name('localizacao.store');
+
+        Route::get('/localizacao/{localizacao}/editar', [LocalizacaoController::class, 'edit'])
+            ->name('localizacao.edit');
+
+        Route::put('/localizacao/{localizacao}', [LocalizacaoController::class, 'update'])
+            ->name('localizacao.update');
+
+        Route::delete('/localizacao/{localizacao}', [LocalizacaoController::class, 'destroy'])
+            ->name('localizacao.destroy');
+
+        // ========================================================
+        // 💼 SITUAÇÃO PROFISSIONAL
+        // ========================================================
+
+        Route::get('/profissional', [ProfissionalController::class, 'index'])
+            ->name('profissional');
+
+        Route::get('/profissional/criar', [ProfissionalController::class, 'create'])
+            ->name('profissional.create');
+
+        Route::post('/profissional', [ProfissionalController::class, 'store'])
+            ->name('profissional.store');
+
+        Route::get('/profissional/{profissional}/editar', [ProfissionalController::class, 'edit'])
+            ->name('profissional.edit');
+
+        Route::put('/profissional/{profissional}', [ProfissionalController::class, 'update'])
+            ->name('profissional.update');
+
+        Route::delete('/profissional/{profissional}', [ProfissionalController::class, 'destroy'])
+            ->name('profissional.destroy');
+
+        // ========================================================
+        // 📜 CERTIFICADOS
+        // ========================================================
+
+        Route::get('/certificados/{inscricao}/download', [CertificadoController::class, 'download'])
+            ->name('certificados.download');
+
+        Route::get('/certificados/{inscricao}/preview', [CertificadoController::class, 'preview'])
+            ->name('certificados.preview');
+
+        // ========================================================
+        // 🤝 REDE DE CONTACTOS
+        // ========================================================
+
+        Route::get('/rede', [RedeContactosController::class, 'index'])
+            ->name('rede');
+
+        Route::get('/rede/conectar/{egresso}', [RedeContactosController::class, 'conectar'])
+            ->name('rede.conectar');
+
+        Route::post('/rede/aceitar/{conexao}', [RedeContactosController::class, 'aceitar'])
+            ->name('rede.aceitar');
+
+        Route::post('/rede/recusar/{conexao}', [RedeContactosController::class, 'recusar'])
+            ->name('rede.recusar');
+
+        // ========================================================
+        // 💬 MENSAGENS
+        // ========================================================
+
+        Route::get('/mensagens', [MensagemController::class, 'index'])
+            ->name('mensagens');
+
+        Route::get('/mensagens/{contato}', [MensagemController::class, 'conversa'])
+            ->name('mensagens.conversa');
+
+        Route::post('/mensagens/{contato}', [MensagemController::class, 'enviar'])
+            ->name('mensagens.enviar');
+
+        Route::post('/mensagens/{contato}/audio', [MensagemController::class, 'enviarAudio'])
+            ->name('mensagens.enviar-audio');
+
+        Route::post('/mensagens/{contato}/ficheiro', [MensagemController::class, 'enviarFicheiro'])
+            ->name('mensagens.enviar-ficheiro');
+
+        Route::put('/mensagens/{mensagem}/editar', [MensagemController::class, 'editar'])
+            ->name('mensagens.editar');
+
+        Route::delete('/mensagens/{mensagem}/eliminar', [MensagemController::class, 'eliminar'])
+            ->name('mensagens.eliminar');
+
+        // ========================================================
+        // 💼 OPORTUNIDADES
+        // ========================================================
+
+        Route::get('/oportunidades', [EgressoOportunidadeController::class, 'index'])
+            ->name('oportunidades');
+            Route::get('/oportunidades/{id}', [EgressoOportunidadeController::class, 'show'])
+            ->name('oportunidades.show');
+
+        Route::post('/oportunidades/candidatar/{oportunidade}', [EgressoOportunidadeController::class, 'candidatar'])
+            ->name('oportunidades.candidatar');
+
+        Route::delete('/oportunidades/candidaturas/{candidatura}', [EgressoOportunidadeController::class, 'cancelarCandidatura'])
+            ->name('oportunidades.cancelar');
+
+        // ========================================================
+        // 📋 CANDIDATURAS (VER / DETALHES / ICS)
+        // ========================================================
+
+        Route::get('/minhas-candidaturas', [CandidaturaController::class, 'index'])
+            ->name('minhas.candidaturas');
+
+        Route::get('/candidaturas/{id}', [CandidaturaController::class, 'show'])
+            ->name('candidaturas.show');
+
+        Route::get('/candidaturas/{id}/entrevista.ics', [CandidaturaController::class, 'entrevistaIcs'])
+            ->name('candidaturas.entrevista.ics');
+            Route::post('/candidaturas/{id}/confirmar', [CandidaturaController::class, 'confirmarPresenca'])
+    ->name('candidaturas.confirmar');
+
+        // ========================================================
+        // 🎪 EVENTOS
+        // ========================================================
+
+        Route::get('/eventos', [EgressoEventoController::class, 'index'])
+            ->name('eventos');
+        Route::get('/eventos/{id}', [EgressoEventoController::class, 'show'])
+         ->name('eventos.show');
+        Route::post('/eventos/inscrever/{evento}', [EgressoEventoController::class, 'inscrever'])
+            ->name('eventos.inscrever');
+
+        Route::get('/eventos/comprovativo/{inscricao}', [EgressoEventoController::class, 'comprovativo'])
+            ->name('eventos.comprovativo');
+
+        Route::get('/minhas-inscricoes', [EgressoEventoController::class, 'minhasInscricoes'])
+            ->name('minhas.inscricoes');
+
+        Route::delete('/minhas-inscricoes/{inscricao}/cancelar', [EgressoEventoController::class, 'cancelarInscricao'])
+            ->name('minhas.inscricoes.cancelar');
+
+        // ========================================================
+        // 🔔 NOTIFICAÇÕES
+        // ========================================================
+
+        Route::get('/notificacoes', [EgressoNotificacaoController::class, 'index'])
+            ->name('notificacoes.index');
+
+        Route::post('/notificacoes/marcar-todas', [EgressoNotificacaoController::class, 'marcarTodasComoLidas'])
+            ->name('notificacoes.marcar-todas');
+
+        Route::post('/notificacoes/{id}/marcar-lida', [EgressoNotificacaoController::class, 'marcarComoLida'])
+            ->name('notificacoes.marcar-lida');
+
+        Route::get('/notificacoes/contar', [EgressoNotificacaoController::class, 'contarNaoLidas'])
+            ->name('notificacoes.contar');
+
+        // ========================================================
+        // 📰 FEED
+        // ========================================================
+
+        Route::get('/feed', [FeedController::class, 'index'])
+            ->name('feed');
+
+        Route::post('/feed', [FeedController::class, 'store'])
+            ->name('feed.store');
+
+        Route::put('/feed/{publicacao}', [FeedController::class, 'update'])
+            ->name('feed.update');
+
+        Route::delete('/feed/{publicacao}', [FeedController::class, 'destroy'])
+            ->name('feed.destroy');
+
+        Route::post('/feed/{publicacao}/curtir', [FeedController::class, 'curtir'])
+            ->name('feed.curtir');
+
+        Route::post('/feed/{publicacao}/comentar', [FeedController::class, 'comentar'])
+            ->name('feed.comentar');
+
+        Route::put('/feed/comentario/{comentario}', [FeedController::class, 'editarComentario'])
+            ->name('feed.editar.comentario');
+
+        Route::delete('/feed/comentario/{comentario}', [FeedController::class, 'eliminarComentario'])
+            ->name('feed.eliminar.comentario');
+            
+
+        // ========================================================
+        // 🗺️ MAPA
+        // ========================================================
+
+        Route::get('/mapa', [EgressoMapaController::class, 'index'])
+            ->name('mapa');
+
+        Route::get('/mapa/buscar-egresso', [EgressoMapaController::class, 'buscarEgresso'])
+            ->name('mapa.buscar');
+
+        // ========================================================
+        // 👤 PERFIL PÚBLICO
+        // ========================================================
+
+        Route::get('/egressos/{egresso}', [EgressoPerfilPublicoController::class, 'show'])
+        ->name('egressos.show');
+
+        // ========================================================
+        // 📰 MURAL
+        // ========================================================
+
+        Route::get('/mural', [EgressoMuralController::class, 'index'])
+            ->name('mural.index');
+
+        // ========================================================
+        // 📊 PESQUISAS
+        // ========================================================
+
+        Route::get('/pesquisas', [EgressoPesquisaController::class, 'index'])
+            ->name('pesquisas.index');
+
+        Route::get('/pesquisas/{pesquisa}/responder', [EgressoPesquisaController::class, 'responder'])
+            ->name('pesquisas.responder');
+
+        Route::post('/pesquisas/{pesquisa}/salvar', [EgressoPesquisaController::class, 'salvar'])
+            ->name('pesquisas.salvar');
+
+        // ========================================================
+        // 💬 FEEDBACKS
+        // ========================================================
+
+        Route::get('/feedbacks', [EgressoFeedbackController::class, 'index'])
+            ->name('feedbacks.index');
+
+        Route::get('/feedbacks/criar', [EgressoFeedbackController::class, 'create'])
+            ->name('feedbacks.create');
+
+        Route::post('/feedbacks', [EgressoFeedbackController::class, 'store'])
+            ->name('feedbacks.store');
+
+        Route::get('/feedbacks/{feedback}', [EgressoFeedbackController::class, 'show'])
+            ->name('feedbacks.show');
+
+        // ========================================================
+        // 📋 SERVIÇOS
+        // ========================================================
+
+        Route::get('/servicos', [EgressoServicoController::class, 'index'])
+            ->name('servicos.index');
+
+        Route::get('/servicos/meus-pedidos', [EgressoServicoController::class, 'index'])
+        ->name('servicos.meus-pedidos');
+
+        Route::get('/servicos/solicitar', [EgressoServicoController::class, 'create'])
+            ->name('servicos.solicitar');
+
+        Route::post('/servicos', [EgressoServicoController::class, 'store'])
+            ->name('servicos.store');
+
+        Route::delete('/servicos/{servico}', [EgressoServicoController::class, 'destroy'])
+            ->name('servicos.cancelar');
+
+        // ========================================================
+        // 🤖 CHATBOT - EGRESSO
+        // ========================================================
+
+        Route::get('/chatbot', [EgressoChatbotController::class, 'index'])
+            ->name('chatbot.index');
+
+        Route::post('/chatbot/enviar', [EgressoChatbotController::class, 'enviar'])
+            ->name('chatbot.enviar');
+
+        Route::get('/chatbot/verificar', [EgressoChatbotController::class, 'verificarNovas'])
+            ->name('chatbot.verificar');
+
+    });
+
+    /*======================================================================
+    |                                                                      |
+    |                         ROTAS PARA EMPRESAS                          |
+    |                                                                      |
+    ======================================================================*/
+
+    Route::prefix('empresa')
+        ->name('empresa.')
+        ->group(function () {
+
+        // Página de pendente
+        Route::get('/pendente', [EmpresaDashboardController::class, 'pendente'])->name('pendente');
+
+        // Dashboard
+        Route::get('/dashboard', [EmpresaDashboardController::class, 'index'])->name('dashboard');
+
+        // Perfil
+        Route::get('/perfil', [EmpresaDashboardController::class, 'perfil'])->name('perfil');
+        Route::put('/perfil', [EmpresaDashboardController::class, 'actualizarPerfil'])->name('perfil.update');
+
+        // Oportunidades
+        Route::resource('oportunidades', EmpresaOportunidadeController::class);
+
+        // Candidaturas
+        Route::get('/candidaturas', [EmpresaCandidaturaController::class, 'index'])->name('candidaturas.index');
+        Route::get('/candidaturas/{id}', [EmpresaCandidaturaController::class, 'show'])->name('candidaturas.show');
+        Route::patch('/candidaturas/{id}/status', [EmpresaCandidaturaController::class, 'actualizarStatus'])->name('candidaturas.status');
+
+         Route::post('/notificacoes/{id}/lida', [NotificacaoController::class, 'marcarLida'])->name('notificacoes.lida');
+         Route::post('/notificacoes/todas-lidas', [NotificacaoController::class, 'marcarTodas'])->name('notificacoes.todas');
+   
+        
+    });
+
+    /*======================================================================
+    |                                                                      |
+    |                       ROTAS PARA ADMINISTRADORES                    |
+    |                                                                      |
+    ======================================================================*/
+
+    Route::prefix('admin')
+        ->name('admin.')
+        ->middleware(['check.admin'])
+        ->group(function () {
+
+        // ========================================================
+        // 📊 DASHBOARD
+        // ========================================================
+
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // ========================================================
+        // 👤 GESTÃO DE EGRESSOS
+        // ========================================================
+
+        Route::resource('egressos', AdminEgressoController::class);
+
+        Route::post('egressos/importar', [AdminEgressoController::class, 'importar'])
+            ->name('egressos.importar');
+
+        Route::get('egressos/exportar', [AdminEgressoController::class, 'exportar'])
+            ->name('egressos.exportar');
+
+        Route::post('egressos/verificar/{egresso}', [AdminEgressoController::class, 'verificar'])
+            ->name('egressos.verificar');
+
+        Route::post('egressos/desverificar/{egresso}', [AdminEgressoController::class, 'desverificar'])
+            ->name('egressos.desverificar');
+
+        Route::post('egressos/reativar/{egresso}', [AdminEgressoController::class, 'reativar'])
+            ->name('egressos.reativar');
+
+        // ========================================================
+        // 🔥 VALIDAÇÃO DE EGRESSOS
+        // ========================================================
+
+        Route::get('/validacao', [ValidacaoEgressosController::class, 'index'])
+            ->name('validacao.index');
+
+        Route::get('/validacao/{id}', [ValidacaoEgressosController::class, 'show'])
+            ->name('validacao.show');
+
+        Route::post('/validacao/{id}/aprovar', [ValidacaoEgressosController::class, 'aprovar'])
+            ->name('validacao.aprovar');
+
+        Route::post('/validacao/{id}/reprovar', [ValidacaoEgressosController::class, 'reprovar'])
+            ->name('validacao.reprovar');
+
+        // ========================================================
+        // 🏛️ UNIDADES ORGÂNICAS
+        // ========================================================
+
+        Route::resource('unidades', UnidadeOrganicaController::class);
+
+        // ========================================================
+        // 📚 CURSOS
+        // ========================================================
+
+        Route::resource('cursos', CursoController::class);
+
+        // ========================================================
+        // 💼 OPORTUNIDADES
+        // ========================================================
+
+        Route::resource('oportunidades', OportunidadeController::class);
+
+        // ========================================================
+        // 🎪 EVENTOS
+        // ========================================================
+
+        Route::resource('eventos', AdminEventoController::class);
+
+        Route::get('eventos/{evento}/inscritos', [AdminEventoController::class, 'inscritos'])
+            ->name('eventos.inscritos');
+
+            Route::post('/video-call/registar-peer', [VideoCallController::class, 'registarPeer'])
+            ->name('video-call.registar-peer');
+
+        // Gestão de Empresas
+        Route::get('/empresas', [AdminEmpresaController::class, 'index'])->name('empresas.index');
+        Route::get('/empresas/{id}', [AdminEmpresaController::class, 'show'])->name('empresas.show');
+        Route::patch('/empresas/{id}/aprovar', [AdminEmpresaController::class, 'aprovar'])->name('empresas.aprovar');
+        Route::patch('/empresas/{id}/reprovar', [AdminEmpresaController::class, 'reprovar'])->name('empresas.reprovar');
+        Route::delete('/empresas/{id}', [AdminEmpresaController::class, 'destroy'])->name('empresas.destroy');
+
+        // ========================================================
+        // 📊 RELATÓRIOS
+        // ========================================================
+
+        Route::get('/relatorios', [RelatorioController::class, 'index'])
+            ->name('relatorios.index');
+
+        // ========================================================
+        // 📤 EXPORTAÇÕES / RELATÓRIOS
+        // ========================================================
+
+        Route::get('/candidaturas/exportar/csv', [AdminExportController::class, 'candidaturasCsv'])
+            ->name('candidaturas.exportar.csv');
+
+        Route::get('/candidaturas/exportar/pdf', [AdminExportController::class, 'candidaturasPdf'])
+            ->name('candidaturas.exportar.pdf');
+
+        Route::get('/eventos/{evento}/inscritos/exportar/csv', [AdminExportController::class, 'inscritosEventoCsv'])
+            ->name('eventos.inscritos.exportar.csv');
+            Route::prefix('empresa')
+        ->name('empresa.')
+        ->group(function () {
+
+        // Página de pendente
+        Route::get('/pendente', [EmpresaDashboardController::class, 'pendente'])->name('pendente');
+
+        // Dashboard
+        Route::get('/dashboard', [EmpresaDashboardController::class, 'index'])->name('dashboard');
+
+        // Perfil
+        Route::get('/perfil', [EmpresaDashboardController::class, 'perfil'])->name('perfil');
+        Route::put('/perfil', [EmpresaDashboardController::class, 'actualizarPerfil'])->name('perfil.update');
+
+        // Oportunidades
+        Route::resource('oportunidades', EmpresaOportunidadeController::class);
+
+        // Candidaturas
+        Route::get('/candidaturas', [EmpresaCandidaturaController::class, 'index'])->name('candidaturas.index');
+        Route::get('/candidaturas/{id}', [EmpresaCandidaturaController::class, 'show'])->name('candidaturas.show');
+        Route::patch('/candidaturas/{id}/status', [EmpresaCandidaturaController::class, 'actualizarStatus'])->name('candidaturas.status');
+
+         Route::post('/notificacoes/{id}/lida', [NotificacaoController::class, 'marcarLida'])->name('notificacoes.lida');
+         Route::post('/notificacoes/todas-lidas', [NotificacaoController::class, 'marcarTodas'])->name('notificacoes.todas');
+   
+        
+    });
+         // ========================================================
+        // 📊 RELATÓRIOS PDF
+        // ========================================================
+        Route::get('/relatorios/pdf/egressos',        [RelatorioController::class, 'pdfEgressos'])        ->name('relatorios.pdf.egressos');
+        Route::get('/relatorios/pdf/profissionais',   [RelatorioController::class, 'pdfProfissionais'])   ->name('relatorios.pdf.profissionais');
+        Route::get('/relatorios/pdf/localizacoes',    [RelatorioController::class, 'pdfLocalizacoes'])    ->name('relatorios.pdf.localizacoes');
+        Route::get('/relatorios/pdf/empregabilidade', [RelatorioController::class, 'pdfEmpregabilidade']) ->name('relatorios.pdf.empregabilidade');
+        Route::get('/relatorios/pdf/por-curso/{curso?}', [RelatorioController::class, 'pdfPorCurso'])     ->name('relatorios.pdf.por-curso');
+        Route::get('/relatorios/pdf/por-unidade',     [RelatorioController::class, 'pdfPorUnidade'])      ->name('relatorios.pdf.por-unidade');
+        Route::get('/relatorios/pdf/oportunidades',   [RelatorioController::class, 'pdfOportunidades'])   ->name('relatorios.pdf.oportunidades');
+        Route::get('/relatorios/pdf/completo',        [RelatorioController::class, 'pdfCompleto'])        ->name('relatorios.pdf.completo');
+        Route::get('/relatorios/pdf/conexoes',        [RelatorioController::class, 'pdfConexoes'])        ->name('relatorios.pdf.conexoes');
+        Route::get('/relatorios/pdf/mensagens',       [RelatorioController::class, 'pdfMensagens'])       ->name('relatorios.pdf.mensagens');
+        Route::get('/relatorios/pdf/chamadas',        [RelatorioController::class, 'pdfChamadas'])        ->name('relatorios.pdf.chamadas');
+        Route::get('/relatorios/pdf/audios',          [RelatorioController::class, 'pdfAudios'])          ->name('relatorios.pdf.audios');
+        Route::get('/relatorios/pdf/notificacoes',    [RelatorioController::class, 'pdfNotificacoes'])    ->name('relatorios.pdf.notificacoes');
+        Route::get('/relatorios/pdf/candidaturas',    [RelatorioController::class, 'pdfCandidaturas'])    ->name('relatorios.pdf.candidaturas');
+        Route::get('/relatorios/pdf/eventos',         [RelatorioController::class, 'pdfEventos'])         ->name('relatorios.pdf.eventos');
+        Route::get('/relatorios/pdf/inscricoes',      [RelatorioController::class, 'pdfInscricoes'])      ->name('relatorios.pdf.inscricoes');
+        Route::get('/relatorios/pdf/feedbacks',       [RelatorioController::class, 'pdfFeedbacks'])       ->name('relatorios.pdf.feedbacks');
+        Route::get('/relatorios/pdf/servicos',        [RelatorioController::class, 'pdfServicos'])        ->name('relatorios.pdf.servicos');
+        Route::get('/relatorios/pdf/atividade',       [RelatorioController::class, 'pdfAtividade'])       ->name('relatorios.pdf.atividade');
+        Route::get('/relatorios/pdf/engajamento',     [RelatorioController::class, 'pdfEngajamento'])     ->name('relatorios.pdf.engajamento');
+        Route::get('/relatorios/pdf/pesquisas',       [RelatorioController::class, 'pdfPesquisas'])       ->name('relatorios.pdf.pesquisas');
+        Route::get('/relatorios/pdf/mural',           [RelatorioController::class, 'pdfMural'])           ->name('relatorios.pdf.mural');
+        Route::get('/relatorios/pdf/mapa',            [RelatorioController::class, 'pdfMapa'])            ->name('relatorios.pdf.mapa');
+
+        // ========================================================
+        // 📊 RELATÓRIOS EXCEL
+        // ========================================================
+        Route::get('/relatorios/excel/egressos',        [RelatorioController::class, 'excelEgressos'])        ->name('relatorios.excel.egressos');
+        Route::get('/relatorios/excel/profissionais',   [RelatorioController::class, 'excelProfissionais'])   ->name('relatorios.excel.profissionais');
+        Route::get('/relatorios/excel/localizacoes',    [RelatorioController::class, 'excelLocalizacoes'])    ->name('relatorios.excel.localizacoes');
+        Route::get('/relatorios/excel/empregabilidade', [RelatorioController::class, 'excelEmpregabilidade']) ->name('relatorios.excel.empregabilidade');
+        Route::get('/relatorios/excel/por-curso/{curso?}', [RelatorioController::class, 'excelPorCurso'])     ->name('relatorios.excel.por-curso');
+        Route::get('/relatorios/excel/por-unidade',     [RelatorioController::class, 'excelPorUnidade'])      ->name('relatorios.excel.por-unidade');
+        Route::get('/relatorios/excel/oportunidades',   [RelatorioController::class, 'excelOportunidades'])   ->name('relatorios.excel.oportunidades');
+        Route::get('/relatorios/excel/completo',        [RelatorioController::class, 'excelCompleto'])        ->name('relatorios.excel.completo');
+        Route::get('/relatorios/excel/conexoes',        [RelatorioController::class, 'excelConexoes'])        ->name('relatorios.excel.conexoes');
+        Route::get('/relatorios/excel/mensagens',       [RelatorioController::class, 'excelMensagens'])       ->name('relatorios.excel.mensagens');
+        Route::get('/relatorios/excel/chamadas',        [RelatorioController::class, 'excelChamadas'])        ->name('relatorios.excel.chamadas');
+        Route::get('/relatorios/excel/audios',          [RelatorioController::class, 'excelAudios'])          ->name('relatorios.excel.audios');
+        Route::get('/relatorios/excel/notificacoes',    [RelatorioController::class, 'excelNotificacoes'])    ->name('relatorios.excel.notificacoes');
+        Route::get('/relatorios/excel/candidaturas',    [RelatorioController::class, 'excelCandidaturas'])    ->name('relatorios.excel.candidaturas');
+        Route::get('/relatorios/excel/eventos',         [RelatorioController::class, 'excelEventos'])         ->name('relatorios.excel.eventos');
+        Route::get('/relatorios/excel/inscricoes',      [RelatorioController::class, 'excelInscricoes'])      ->name('relatorios.excel.inscricoes');
+        Route::get('/relatorios/excel/feedbacks',       [RelatorioController::class, 'excelFeedbacks'])       ->name('relatorios.excel.feedbacks');
+        Route::get('/relatorios/excel/servicos',        [RelatorioController::class, 'excelServicos'])        ->name('relatorios.excel.servicos');
+        Route::get('/relatorios/excel/atividade',       [RelatorioController::class, 'excelAtividade'])       ->name('relatorios.excel.atividade');
+        Route::get('/relatorios/excel/engajamento',     [RelatorioController::class, 'excelEngajamento'])     ->name('relatorios.excel.engajamento');
+        Route::get('/relatorios/excel/pesquisas',       [RelatorioController::class, 'excelPesquisas'])       ->name('relatorios.excel.pesquisas');
+        Route::get('/relatorios/excel/mural',           [RelatorioController::class, 'excelMural'])           ->name('relatorios.excel.mural');
+        Route::get('/relatorios/excel/mapa',            [RelatorioController::class, 'excelMapa'])            ->name('relatorios.excel.mapa');
+
+        // Relatórios — Empresas ✅ NOVO
+        Route::get('/relatorios/pdf/empresas', [RelatorioController::class, 'pdfEmpresas'])
+            ->name('relatorios.pdf.empresas');
+
+        Route::get('/relatorios/excel/empresas', [RelatorioController::class, 'excelEmpresas'])
+            ->name('relatorios.excel.empresas');
+        // ========================================================
+        // 🗺️ MAPA
+        // ========================================================
+
+        Route::get('/mapa', [AdminMapaController::class, 'index'])
+            ->name('mapa');
+
+        Route::get('/mapa/buscar-egresso', [AdminMapaController::class, 'buscarEgresso'])
+            ->name('mapa.buscar');
+
+        // ========================================================
+        // 🤝 REDE - ADMIN
+        // ========================================================
+
+        Route::get('/rede', [RedeController::class, 'index'])
+            ->name('rede.index');
+
+        Route::get('/rede/{egresso}', [RedeController::class, 'show'])
+            ->name('rede.show');
+
+        Route::get('/rede/conectar/{egresso}', [RedeController::class, 'conectar'])
+            ->name('rede.conectar');
+
+        Route::post('/rede/aceitar/{conexao}', [RedeController::class, 'aceitar'])
+            ->name('rede.aceitar');
+
+        Route::post('/rede/recusar/{conexao}', [RedeController::class, 'recusar'])
+            ->name('rede.recusar');
+
+        // ========================================================
+        // 💬 MENSAGENS ADMIN
+        // ========================================================
+
+        Route::get('/mensagens', [AdminMensagemController::class, 'index'])
+            ->name('mensagens.index');
+
+        Route::get('/mensagens/{egresso}', [AdminMensagemController::class, 'conversa'])
+            ->name('mensagens.conversa');
+
+        Route::post('/mensagens/{egresso}', [AdminMensagemController::class, 'enviar'])
+            ->name('mensagens.enviar');
+
+        Route::post('/mensagens/{egresso}/audio', [AdminMensagemController::class, 'enviarAudio'])
+            ->name('mensagens.enviar-audio');
+
+        Route::post('/mensagens/{egresso}/ficheiro', [AdminMensagemController::class, 'enviarFicheiro'])
+            ->name('mensagens.enviar-ficheiro');
+
+        Route::put('/mensagens/{mensagem}/editar', [AdminMensagemController::class, 'editar'])
+            ->name('mensagens.editar');
+
+        Route::delete('/mensagens/{mensagem}/eliminar', [AdminMensagemController::class, 'eliminar'])
+            ->name('mensagens.eliminar');
+
+        // ========================================================
+        // 🔔 NOTIFICAÇÕES ADMIN
+        // ========================================================
+
+        Route::get('/notificacoes', [AdminNotificacaoController::class, 'index'])
+            ->name('notificacoes.index');
+
+        Route::post('/notificacoes/marcar-todas', [AdminNotificacaoController::class, 'marcarTodasComoLidas'])
+            ->name('notificacoes.marcar-todas');
+
+        Route::post('/notificacoes/{id}/marcar-lida', [AdminNotificacaoController::class, 'marcarComoLida'])
+            ->name('notificacoes.marcar-lida');
+
+        Route::get('/notificacoes/contar', [AdminNotificacaoController::class, 'contarNaoLidas'])
+            ->name('notificacoes.contar');
+
+        Route::post('/notificacoes/marcar-lida-ajax', [AdminNotificacaoController::class, 'marcarComoLidaAjax'])
+            ->name('notificacoes.marcar-lida-ajax');
+
+        // ========================================================
+        // 👤 PERFIL ADMIN
+        // ========================================================
+
+        Route::get('/perfil', [AdminPerfilController::class, 'index'])
+            ->name('perfil.index');
+
+        Route::get('/perfil/editar', [AdminPerfilController::class, 'edit'])
+            ->name('perfil.edit');
+
+        Route::put('/perfil', [AdminPerfilController::class, 'update'])
+            ->name('perfil.update');
+
+        // ========================================================
+        // 📰 MURAL
+        // ========================================================
+
+        Route::resource('mural', AdminMuralController::class);
+
+        // ========================================================
+        // 📊 PESQUISAS - ADMIN
+        // ========================================================
+
+        Route::get('/pesquisas', [AdminPesquisaController::class, 'index'])
+            ->name('pesquisas.index');
+
+        Route::get('/pesquisas/create', [AdminPesquisaController::class, 'create'])
+            ->name('pesquisas.create');
+
+        Route::post('/pesquisas', [AdminPesquisaController::class, 'store'])
+            ->name('pesquisas.store');
+
+        Route::get('/pesquisas/{pesquisa}/perguntas', [AdminPesquisaController::class, 'perguntas'])
+            ->name('pesquisas.perguntas');
+
+        Route::post('/pesquisas/{pesquisa}/perguntas', [AdminPesquisaController::class, 'addPergunta'])
+            ->name('pesquisas.perguntas.store');
+
+        Route::delete('/pesquisas/perguntas/{pergunta}', [AdminPesquisaController::class, 'destroyPergunta'])
+            ->name('pesquisas.perguntas.destroy');
+
+        Route::get('/pesquisas/{pesquisa}/resultados', [AdminPesquisaController::class, 'resultados'])
+            ->name('pesquisas.resultados');
+
+        Route::get('/pesquisas/{pesquisa}/edit', [AdminPesquisaController::class, 'edit'])
+            ->name('pesquisas.edit');
+
+        Route::put('/pesquisas/{pesquisa}', [AdminPesquisaController::class, 'update'])
+            ->name('pesquisas.update');
+
+        Route::delete('/pesquisas/{pesquisa}', [AdminPesquisaController::class, 'destroy'])
+            ->name('pesquisas.destroy');
+
+        // ========================================================
+        // 💬 FEEDBACKS
+        // ========================================================
+
+        Route::get('feedbacks', [AdminFeedbackController::class, 'index'])
+            ->name('feedbacks.index');
+
+        Route::get('feedbacks/{feedback}', [AdminFeedbackController::class, 'show'])
+            ->name('feedbacks.show');
+
+        Route::put('feedbacks/{feedback}/aprovar', [AdminFeedbackController::class, 'aprovar'])
+            ->name('feedbacks.aprovar');
+
+        Route::put('feedbacks/{feedback}/rejeitar', [AdminFeedbackController::class, 'rejeitar'])
+            ->name('feedbacks.rejeitar');
+
+        Route::delete('feedbacks/{feedback}', [AdminFeedbackController::class, 'destroy'])
+            ->name('feedbacks.destroy');
+
+        // ========================================================
+        // 📋 SERVIÇOS
+        // ========================================================
+
+        Route::get('servicos', [AdminServicoController::class, 'index'])
+            ->name('servicos.index');
+
+        Route::get('servicos/{servico}', [AdminServicoController::class, 'show'])
+            ->name('servicos.show');
+
+        Route::put('servicos/{servico}/atender', [AdminServicoController::class, 'atender'])
+            ->name('servicos.atender');
+
+        Route::delete('servicos/{servico}', [AdminServicoController::class, 'destroy'])
+            ->name('servicos.destroy');
+
+        // ========================================================
+        // 📰 FEED
+        // ========================================================
+
+        Route::get('/feed', [AdminFeedController::class, 'index'])
+            ->name('feed.index');
+
+        Route::get('/feed/{id}', [AdminFeedController::class, 'show'])
+            ->name('feed.show');
+
+        Route::delete('/feed/{id}', [AdminFeedController::class, 'destroy'])
+            ->name('feed.destroy');
+
+        // ========================================================
+        // 📧 CONTACTOS / APOIO AO ALUMNI
+        // ========================================================
+
+        Route::get('/contactos', [AdminContactoAlumniController::class, 'index'])
+            ->name('contactos.index');
+
+        Route::get('/contactos/{contacto}', [AdminContactoAlumniController::class, 'show'])
+            ->name('contactos.show');
+
+        Route::post('/contactos/{contacto}/responder', [AdminContactoAlumniController::class, 'responder'])
+            ->name('contactos.responder');
+
+        Route::delete('/contactos/{contacto}', [AdminContactoAlumniController::class, 'destroy'])
+            ->name('contactos.destroy');
+
+        // ========================================================
+        // 📋 CANDIDATURAS (ADMIN)
+        // ========================================================
+
+        Route::get('/candidaturas', [AdminCandidaturaController::class, 'index'])
+            ->name('candidaturas.index');
+
+        Route::get('/candidaturas/{id}', [AdminCandidaturaController::class, 'show'])
+            ->name('candidaturas.show');
+
+        Route::put('/candidaturas/{id}/status', [AdminCandidaturaController::class, 'mudarStatus'])
+            ->name('candidaturas.status');
+
+        Route::put('/candidaturas/{id}/entrevista', [AdminCandidaturaController::class, 'marcarEntrevista'])
+            ->name('candidaturas.entrevista');
+
+        Route::put('/candidaturas/{id}/rejeitar', [AdminCandidaturaController::class, 'rejeitar'])
+            ->name('candidaturas.rejeitar');
+
+        // ========================================================
+        // 🎪 INSCRITOS EM EVENTO (ADMIN)
+        // ========================================================
+
+        Route::put('/inscricoes/{inscricao}/presenca', [AdminEventoController::class, 'marcarPresenca'])
+            ->name('inscricoes.presenca');
+
+        Route::get('/eventos/{evento}/inscritos/exportar', [AdminEventoController::class, 'exportarInscritos'])
+            ->name('eventos.inscritos.exportar');
+            // ============================================================
+            // INSCRIÇÕES EM EVENTOS (aprovar / rejeitar)
+            // ============================================================
+                Route::post('eventos/inscricoes/{inscricao}/aprovar',
+                [AdminEventoController::class, 'aprovarInscricao'])
+                ->name('eventos.inscricoes.aprovar');
+
+            Route::post('eventos/inscricoes/{inscricao}/rejeitar',
+                [AdminEventoController::class, 'rejeitarInscricao'])
+                ->name('eventos.inscricoes.rejeitar');
+
+        // ========================================================
+        // 🤖 CHATBOT - ADMINISTRADOR
+        // ========================================================
+
+        Route::post('/chatbot/enviar', [AdminChatbotController::class, 'enviar'])
+            ->name('chatbot.enviar');
+
+        Route::get('/chatbot/verificar', [AdminChatbotController::class, 'verificarNovas'])
+            ->name('chatbot.verificar');
+
+        // ========================================================
+        // 📞 CHAMADAS DE VÍDEO/VOZ (ADMIN)
+        // ========================================================
+
+        Route::get('/video-call/verificar', [AdminVideoCallController::class, 'verificar'])
+            ->name('video-call.verificar');
+
+        Route::post('/video-call/iniciar', [AdminVideoCallController::class, 'iniciar'])
+            ->name('video-call.iniciar');
+
+        Route::post('/video-call/aceitar', [AdminVideoCallController::class, 'aceitar'])
+            ->name('video-call.aceitar');
+
+        Route::post('/video-call/recusar', [AdminVideoCallController::class, 'recusar'])
+            ->name('video-call.recusar');
+
+        Route::post('/video-call/sinal', [AdminVideoCallController::class, 'sinal'])
+            ->name('video-call.sinal');
+
+        Route::post('/video-call/estado', [AdminVideoCallController::class, 'estado'])
+            ->name('video-call.estado');
+
+        Route::post('/video-call/encerrar', [AdminVideoCallController::class, 'encerrar'])
+            ->name('video-call.encerrar');
+
+        Route::get('/video-call/{roomId}', [AdminVideoCallController::class, 'sala'])
+            ->name('video-call.sala');
+
+    });
+
+
+});
+
+
+
