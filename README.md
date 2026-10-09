@@ -15,7 +15,7 @@ Portal Alumni Track é uma plataforma que conecta ex-estudantes da Universidade 
 - Verificação de Certificados — Validação pública
 - Chatbot com IA — Assistente inteligente
 - Painel Administrativo — Gestão completa da plataforma
-- Videochamadas — Chamadas entre egressos
+- Videochamadas — Chamadas entre egressos ou administrador
 
 ---
 
@@ -23,8 +23,8 @@ Portal Alumni Track é uma plataforma que conecta ex-estudantes da Universidade 
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Backend | Laravel 11, PHP 8.2+ |
-| Frontend | Blade, Bootstrap 5, Tailwind CSS |
+| Backend | Laravel 12, PHP 8.2+ |
+| Frontend | Blade, Bootstrap 5|
 | Base de Dados | MySQL |
 | Tempo Real | Laravel Reverb + WebRTC (PeerJS) |
 | Build | Vite |
@@ -36,7 +36,7 @@ Portal Alumni Track é uma plataforma que conecta ex-estudantes da Universidade 
 
 ### Pré-requisitos
 
-- PHP 8.2+
+- PHP 8.2
 - Composer
 - Node.js 18+
 - MySQL

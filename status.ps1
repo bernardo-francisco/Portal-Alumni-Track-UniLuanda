@@ -14,6 +14,7 @@ foreach ($porta in $portas) {
         8000 { "Laravel" }
         8080 { "Reverb" }
         9000 { "PeerServer" }
+    
     }
     $linha = netstat -ano | Select-String ":$porta" | Select-String "LISTENING"
     if ($linha) {
