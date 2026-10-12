@@ -3834,37 +3834,46 @@ body.error-body::before {
         }
 
         /* ============================================================
-           ESTATÍSTICAS — GRID EQUILIBRADO (4 CARDS)
-        ============================================================ */
-        .quick-stats {
-            padding: 4rem 6% !important;
-            background: var(--surface);
-        }
+   ESTATÍSTICAS — Grid responsivo (4 → 2 → 1)
+============================================================ */
+.quick-stats {
+    padding: 4rem 6% !important;
+    background: var(--surface);
+    overflow-x: hidden;      /* ⬅️ Impede scroll horizontal */
+}
 
-        .stats-grid-user {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            align-items: stretch;
-        }
+.stats-grid-user {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: stretch;
+    width: 100%;              /* ⬅️ Ocupa só o que tem */
+    box-sizing: border-box;
+}
 
-        /* Tablet: 2 por linha */
-        @media (max-width: 992px) {
-            .stats-grid-user {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
-            }
-        }
+/* ---------- Tablet: 2 por linha ---------- */
+@media (max-width: 992px) {
+    .quick-stats {
+        padding: 3rem 5% !important;
+    }
+    .stats-grid-user {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.5rem;
+    }
+}
 
-        /* Mobile: 1 por linha */
-        @media (max-width: 576px) {
-            .stats-grid-user {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
+/* ---------- Mobile: 1 por linha ---------- */
+@media (max-width: 576px) {
+    .quick-stats {
+        padding: 2rem 4% !important;
+    }
+    .stats-grid-user {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+}
 
         /* Menu mobile — fundo escuro visível em vez de branco */
 #navLinks {
