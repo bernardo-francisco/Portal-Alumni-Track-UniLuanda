@@ -75,6 +75,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.coordenador' => \App\Http\Middleware\CheckCoordenador::class,
 
             'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
+
+            'empresa.aprovada' => \App\Http\Middleware\EmpresaAprovada::class,   // ✅ Movido para aqui
         ]);
     })
 
@@ -86,6 +88,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withExceptions(function (Exceptions $exceptions) {
 
+        // ============================================================
+        // Autenticação — redireciona para login
+        // ============================================================
         $exceptions->render(function (
             \Illuminate\Auth\AuthenticationException $e,
             $request
@@ -105,14 +110,54 @@ return Application::configure(basePath: dirname(__DIR__))
                     'Por favor, faça login para aceder ao sistema.'
                 );
         });
+
+        // ============================================================
+        // ✅ FASE 1 — Rate Limiting (429) personalizado
+        // ============================================================
+        $exceptions->render(function (
+            \Illuminate\Http\Exceptions\ThrottleRequestsException $e,
+            \Illuminate\Http\Request $request
+        ) {
+
+            // Calcular tempo de espera em minutos
+            $retryAfter = $e->getHeaders()['Retry-After'] ?? 60;
+            $minutos    = max(1, (int) ceil($retryAfter / 60));
+
+            // --------------------------------------------------------
+            // Rotas de REGISTO → redireciona para o formulário
+            // --------------------------------------------------------
+            if (
+                $request->routeIs('register.post') ||
+                $request->routeIs('register') ||
+                str_contains($request->path(), 'registar')
+            ) {
+                return redirect()
+                    ->route('register')
+                    ->with(
+                        'error',
+                        "⏳ Demasiadas tentativas de registo. Por favor, aguarde {$minutos} minuto(s) antes de tentar novamente."
+                    );
+            }
+
+            // --------------------------------------------------------
+            // Verificação de processo (AJAX) → devolve JSON
+            // --------------------------------------------------------
+            if (
+                $request->expectsJson() ||
+                $request->routeIs('verificar.processo')
+            ) {
+                return response()->json([
+                    'success'              => false,
+                    'message'              => "Demasiadas tentativas. Aguarde {$minutos} minuto(s).",
+                    'retry_after_minutes'  => $minutos,
+                ], 429);
+            }
+
+            // --------------------------------------------------------
+            // Fallback — comportamento padrão do Laravel
+            // --------------------------------------------------------
+            return null;
+        });
     })
 
-    ->withMiddleware(function (Middleware $middleware) {
-    $middleware->alias([
-        'empresa.aprovada' => \App\Http\Middleware\EmpresaAprovada::class,
-    ]);
-})
-
     ->create();
-
-    

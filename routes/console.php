@@ -33,3 +33,9 @@ Schedule::command('egressos:parabens')
     ->withoutOverlapping()
     ->onOneServer()
     ->description('Parabéns aos egressos aniversariantes');
+
+
+// ============================================================
+// EMAILS DESCARTÁVEIS
+// ============================================================
+    Schedule::command('disposable:update')->weekly();

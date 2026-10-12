@@ -14,6 +14,9 @@ use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\AdminEmpresaController;
+use App\Http\Controllers\Empresa\ChatbotController;
+use App\Http\Controllers\Auth\OtpVerificationController;
+use App\Http\Controllers\Auth\VerificarEmailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -132,10 +135,27 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // 📝 REGISTO
 // ============================================================
 
-Route::get('/registar', [RegisterController::class, 'showRegisterForm'])->name('register');
-Route::post('/registar', [RegisterController::class, 'register'])->name('register.post');
+Route::get('/registar', [RegisterController::class, 'showRegisterForm'])
+    ->name('register');
+
+Route::post('/registar', [RegisterController::class, 'register'])
+    ->middleware('throttle:register')             // ✅ NOVO
+    ->name('register.post');
+
 Route::post('/verificar-processo', [RegisterController::class, 'verificarNumeroProcesso'])
+    ->middleware('throttle:verificar-processo')   // ✅ NOVO
     ->name('verificar.processo');
+
+Route::get('/registar/verificar-otp', [OtpVerificationController::class, 'showForm'])
+    ->name('register.verificar-otp');
+
+Route::post('/registar/verificar-otp', [OtpVerificationController::class, 'verify'])
+    ->name('register.verificar-otp.post')
+    ->middleware('throttle:register-otp');
+
+// ✅ FASE 2 — Verificação de Email
+Route::get('/verificar-email/{token}', [VerificarEmailController::class, 'verificar'])
+    ->name('verificar.email');
 
 // ============================================================
 // 👤 PERFIL PÚBLICO
@@ -545,7 +565,8 @@ Route::middleware(['auth'])->group(function () {
          Route::post('/notificacoes/{id}/lida', [NotificacaoController::class, 'marcarLida'])->name('notificacoes.lida');
          Route::post('/notificacoes/todas-lidas', [NotificacaoController::class, 'marcarTodas'])->name('notificacoes.todas');
    
-        
+        Route::post('/chatbot/enviar', [\App\Http\Controllers\Empresa\ChatbotController::class, 'enviar'])->name('chatbot.enviar');
+        Route::get('/chatbot/verificar', [\App\Http\Controllers\Empresa\ChatbotController::class, 'verificar'])->name('chatbot.verificar');
     });
 
     /*======================================================================

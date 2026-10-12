@@ -27,8 +27,8 @@ class EventoController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('titulo', 'like', "%{$search}%")
-                  ->orWhere('descricao', 'like', "%{$search}%")
-                  ->orWhere('local', 'like', "%{$search}%");
+                ->orWhere('descricao', 'like', "%{$search}%")
+                ->orWhere('local', 'like', "%{$search}%");
             });
         }
 
@@ -64,17 +64,22 @@ class EventoController extends Controller
             $query->whereDate('data_fim', '<=', $request->data_fim);
         }
 
-        $orderBy = $request->get('order_by', 'data_inicio');
+        // ✅ Por defeito: últimos criados primeiro (created_at DESC)
+        $orderBy  = $request->get('order_by', 'created_at');
         $orderDir = $request->get('order_dir', 'desc');
 
         $allowedOrderFields = ['titulo', 'tipo', 'data_inicio', 'created_at'];
+
         if (in_array($orderBy, $allowedOrderFields)) {
             $query->orderBy($orderBy, $orderDir);
         } else {
-            $query->orderBy('data_inicio', 'desc');
+            $query->orderBy('created_at', 'desc');
         }
 
-        $eventos = $query->get();
+        // ✅ Ordenação secundária por data_inicio (desempate)
+        $query->orderBy('data_inicio', 'desc');
+
+        $eventos  = $query->get();
         $unidades = UnidadeOrganica::orderBy('nome')->get();
 
         return view('admin.eventos.index', compact('eventos', 'unidades'));

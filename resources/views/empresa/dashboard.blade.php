@@ -8,10 +8,13 @@
 {{-- CARDS DE ESTATÍSTICAS --}}
 <div class="row g-4 mb-4">
 
+    <div class="row g-4 mb-4">
+
+    {{-- Card 1: Oportunidades --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-primary">
             <div class="stat-card-body">
-                <div class="stat-card-info">
+                <div class="stat-card-content">
                     <span class="stat-card-label">Oportunidades</span>
                     <h3 class="stat-card-value">{{ $totalOportunidades ?? 0 }}</h3>
                     <small class="stat-card-desc"><i class="fas fa-briefcase"></i> Total publicadas</small>
@@ -21,10 +24,11 @@
         </div>
     </div>
 
+    {{-- Card 2: Candidaturas --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-success">
             <div class="stat-card-body">
-                <div class="stat-card-info">
+                <div class="stat-card-content">
                     <span class="stat-card-label">Candidaturas</span>
                     <h3 class="stat-card-value">{{ $totalCandidaturas ?? 0 }}</h3>
                     <small class="stat-card-desc"><i class="fas fa-file-signature"></i> Total recebidas</small>
@@ -34,10 +38,11 @@
         </div>
     </div>
 
+    {{-- Card 3: Pendentes --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-warning">
             <div class="stat-card-body">
-                <div class="stat-card-info">
+                <div class="stat-card-content">
                     <span class="stat-card-label">Pendentes</span>
                     <h3 class="stat-card-value">{{ $candidaturasPendentes ?? 0 }}</h3>
                     <small class="stat-card-desc"><i class="fas fa-clock"></i> Aguardam análise</small>
@@ -47,10 +52,11 @@
         </div>
     </div>
 
+    {{-- Card 4: Aprovadas --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
-        <div class="stat-card stat-card-info">
+        <div class="stat-card stat-card-gold">
             <div class="stat-card-body">
-                <div class="stat-card-info">
+                <div class="stat-card-content">
                     <span class="stat-card-label">Aprovadas</span>
                     <h3 class="stat-card-value">{{ $candidaturasAprovadas ?? 0 }}</h3>
                     <small class="stat-card-desc"><i class="fas fa-user-check"></i> Candidatos aceites</small>
@@ -60,6 +66,7 @@
         </div>
     </div>
 
+</div>
 </div>
 
 {{-- GRÁFICOS --}}

@@ -3,6 +3,7 @@ window.Chart = Chart;
 
 import './bootstrap';
 
+
 /* ================================================================
    APP.JS — UniLuanda Alumni
    Ficheiro único de JavaScript do projecto.
@@ -1393,13 +1394,34 @@ function abrirModalEditar(id) {
 
     updateFormFields();
 
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function () {
-            const isPass = passwordInput.type === 'password';
-            passwordInput.type = isPass ? 'text' : 'password';
-            togglePassword.setAttribute('aria-label', isPass ? 'Ocultar senha' : 'Mostrar senha');
-        });
-    }
+   if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const isPass = passwordInput.type === 'password';
+
+        // Alternar tipo do input
+        passwordInput.type = isPass ? 'text' : 'password';
+
+        // Atualizar aria-label
+        togglePassword.setAttribute('aria-label', isPass ? 'Ocultar senha' : 'Mostrar senha');
+
+        // Alternar o ícone
+        const icon = document.getElementById('togglePasswordIcon');
+        if (icon) {
+            if (isPass) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Manter foco no input
+        passwordInput.focus();
+    });
+}
 
     if (numeroProcessoInput) {
         numeroProcessoInput.addEventListener('input', function () {
@@ -2349,7 +2371,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+
+/* ================================================================
+   30. TOGGLE PASSWORD — Funciona em LOGIN e REGISTO
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+    // Verificar TODOS os botões toggle da página
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+
+    if (!toggleButtons.length) return;
+
+    toggleButtons.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            // Encontrar o input associado (o próximo ou pai)
+            const field = btn.closest('.field');
+            const input = field ? field.querySelector('input') : null;
+
+            if (!input) return;
+
+            const isPass = input.type === 'password';
+            input.type = isPass ? 'text' : 'password';
+
+            // Alternar ícone dentro do botão
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-eye', !isPass);
+                icon.classList.toggle('fa-eye-slash', isPass);
+            }
+
+            // Acessibilidade
+            btn.setAttribute('aria-label', isPass ? 'Ocultar senha' : 'Mostrar senha');
+
+            // Foco
+            input.focus();
+        });
+    });
+});
 /* ================================================================
    FIM — App.js UniLuanda Alumni
 ================================================================ */
-console.log('%c🎓 UniLuanda Alumni — app.js carregado', 'color:#c9a227;font-weight:bold;');
+console.log('🟢 APP.JS CHEGOU AO FIM!');

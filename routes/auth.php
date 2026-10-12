@@ -7,15 +7,32 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // ============================================================
+    // ✅ FASE 1 — Rotas de registo com rate limiting
+    // ============================================================
+
+    // ============================================================
+    // ⚠️ Rotas de registo MOVIDAS para web.php
+    // (evitar duplicação — web.php é carregado por último)
+    // ============================================================
+    // Route::get('register', [RegisterController::class, 'showRegisterForm'])
+    //     ->name('register.form');
+    // Route::post('register', [RegisterController::class, 'register'])
+    //     ->middleware('throttle:register')
+    //     ->name('register');
+    // Route::post('verificar-processo', [RegisterController::class, 'verificarNumeroProcesso'])
+    //     ->middleware('throttle:verificar-processo')
+    //     ->name('verificar.processo');
+
+    // ============================================================
+    // Restantes rotas de autenticação (inalteradas)
+    // ============================================================
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

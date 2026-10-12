@@ -10,351 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite('resources/js/home.js') 
 
-    {{-- ============================================================
-         CSS DO HERO FULLWIDTH COM CARROSSEL DE FUNDO — CENTRALIZADO
-    ============================================================ --}}
-    <style>
-        /* HERO FULLWIDTH */
-        .hero-fullwidth {
-            position: relative;
-            width: 100%;
-            min-height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
-
-        /* CARROSSEL DE FUNDO */
-        .hero-bg-carousel {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .hero-bg-slide {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transform: scale(1.08);
-            transition: opacity 1.2s ease, transform 6s ease;
-            pointer-events: none;
-        }
-        .hero-bg-slide.active {
-            opacity: 1;
-            transform: scale(1);
-            z-index: 1;
-        }
-        .hero-bg-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* OVERLAY — escurece ao centro para destacar o texto */
-        .hero-bg-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background:
-                radial-gradient(ellipse at center,
-                    rgba(10, 15, 30, 0.75) 0%,
-                    rgba(10, 15, 30, 0.65) 40%,
-                    rgba(10, 15, 30, 0.55) 100%);
-            pointer-events: none;
-        }
-
-        /* ============================================================
-           CONTEÚDO CENTRALIZADO
-        ============================================================ */
-        .hero-fullwidth-content {
-            position: relative;
-            z-index: 3;
-            width: 100%;
-            padding: 7rem 6%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .hero-center-wrapper {
-            max-width: 900px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        /* ============================================================
-           BADGE
-        ============================================================ */
-        .glass-badge {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 18px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        /* ============================================================
-           TÍTULO
-        ============================================================ */
-        .hero-title {
-            font-size: clamp(2.2rem, 5vw, 4rem);
-            line-height: 1.12;
-            color: #fff;
-            margin: 0;
-            font-weight: 800;
-            letter-spacing: -1px;
-            text-shadow:
-                0 4px 20px rgba(0, 0, 0, 0.5),
-                0 2px 6px rgba(0, 0, 0, 0.35);
-        }
-        .hero-gradient-text {
-            background: linear-gradient(135deg, #facc15, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            display: inline-block;
-        }
-
-        /* ============================================================
-           SUBTÍTULO — CENTRADO
-        ============================================================ */
-        .hero-subtitle-wrapper {
-            max-width: 720px;
-            padding: 0;
-            margin: 0;
-        }
-        .hero-subtitle {
-            font-size: clamp(1rem, 1.3vw, 1.18rem);
-            color: #ffffff !important;
-            line-height: 1.75;
-            margin: 0;
-            font-weight: 400;
-            letter-spacing: 0.15px;
-            text-shadow:
-                0 2px 10px rgba(0, 0, 0, 0.6),
-                0 1px 3px rgba(0, 0, 0, 0.4);
-            opacity: 0.95;
-        }
-
-        /* ============================================================
-           BOTÃO DE VIDRO
-        ============================================================ */
-        .explorar-wrapper {
-            display: flex;
-            justify-content: center;
-            margin-top: 0.5rem;
-        }
-        .glass-btn {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #fff;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
-        }
-        .glass-btn:hover {
-            background: rgba(255, 255, 255, 0.22);
-            transform: translateY(-3px);
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
-            color: #fff;
-        }
-
-        /* ============================================================
-           CARDS FLUTUANTES — EM LINHA, CENTRADOS
-        ============================================================ */
-        .hero-floating-cards {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1.25rem;
-            margin-top: 1.5rem;
-            width: 100%;
-        }
-        .floating-glass-card {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 16px 22px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.14);
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            box-shadow:
-                0 10px 32px rgba(0, 0, 0, 0.25),
-                inset 0 1px 0 rgba(255, 255, 255, 0.35);
-            color: #fff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            min-width: 220px;
-            text-align: left;
-        }
-        .floating-glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow:
-                0 16px 40px rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.45);
-        }
-        .floating-glass-card h5 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin: 0;
-            color: #fff;
-            letter-spacing: -0.3px;
-        }
-        .floating-glass-card p {
-            font-size: 0.75rem;
-            margin: 0;
-            color: rgba(255, 255, 255, 0.85);
-            font-weight: 500;
-        }
-        .floating-glass-card .icon-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        /* ============================================================
-           DOTS
-        ============================================================ */
-        .hero-dots {
-            position: absolute;
-            bottom: 32px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            z-index: 4;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 90vw;
-        }
-        .hero-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            padding: 0;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-        }
-        .hero-dot.active {
-            width: 22px;
-            border-radius: 10px;
-            background: #fff;
-            box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
-        }
-
-        /* ============================================================
-           RESPONSIVO
-        ============================================================ */
-        @media (max-width: 992px) {
-            .hero-fullwidth-content {
-                padding: 6rem 5%;
-            }
-            .hero-center-wrapper {
-                gap: 1.25rem;
-            }
-            .hero-floating-cards {
-                flex-direction: column;
-                align-items: center;
-            }
-            .floating-glass-card {
-                width: 100%;
-                max-width: 360px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .hero-fullwidth-content {
-                padding: 5rem 5%;
-            }
-            .hero-title {
-                letter-spacing: -0.5px;
-            }
-            .hero-subtitle {
-                font-size: 0.95rem;
-                line-height: 1.65;
-            }
-            .glass-badge {
-                font-size: 0.75rem;
-                padding: 6px 14px;
-            }
-            .hero-dot { width: 6px; height: 6px; }
-            .hero-dot.active { width: 18px; }
-            .hero-dots {
-                gap: 4px;
-                padding: 6px 10px;
-                bottom: 20px;
-            }
-        }
-
-        /* ============================================================
-           ESTATÍSTICAS — GRID EQUILIBRADO (4 CARDS)
-        ============================================================ */
-        .quick-stats {
-            padding: 4rem 6% !important;
-            background: var(--surface);
-        }
-
-        .stats-grid-user {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            align-items: stretch;
-        }
-
-        /* Tablet: 2 por linha */
-        @media (max-width: 992px) {
-            .stats-grid-user {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
-            }
-        }
-
-        /* Mobile: 1 por linha */
-        @media (max-width: 576px) {
-            .stats-grid-user {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
-    </style>
+ 
 </head>
 <body
     data-rota-pesquisa-egressos="{{ route('pesquisar.egressos-publicos') }}"
@@ -433,13 +91,38 @@
                 <img src="{{ asset('uploads/home/img9.jpg') }}" alt="Grupo de Egressos">
             </div>
             <div class="hero-bg-slide">
-                <img src="{{ asset('uploads/home/img11.jpg') }}" alt="Plateia de Formatura">
+                <img src="{{ asset('uploads/home/img11.jpg') }}" alt="Plateia de Formatura1">
             </div>
             <div class="hero-bg-slide">
-                <img src="{{ asset('uploads/home/img12.jpg') }}" alt="Plateia de Formatura">
+                <img src="{{ asset('uploads/home/img12.jpg') }}" alt="Plateia de Formatura2">
             </div>
             <div class="hero-bg-slide">
-                <img src="{{ asset('uploads/home/img13.jpg') }}" alt="Plateia de Formatura">
+                <img src="{{ asset('uploads/home/img13.jpg') }}" alt="Plateia de Formatura4">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img14.jpg') }}" alt="Plateia de Formatura5">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img15.jpg') }}" alt="Plateia de Formatura6">
+                
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img16.jpg') }}" alt="Plateia de Formatura7">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img17.jpg') }}" alt="Plateia de Formatura8">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img18.jpg') }}" alt="Plateia de Formatura9">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img19.jpg') }}" alt="Plateia de Formatura10">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img20.jpg') }}" alt="Plateia de Formatura11">
+            </div>
+            <div class="hero-bg-slide">
+                <img src="{{ asset('uploads/home/img21.jpg') }}" alt="Plateia de Formatura12">
             </div>
             <div class="hero-bg-overlay"></div>
         </div>
@@ -449,6 +132,7 @@
 
             <div class="hero-center-wrapper">
 
+                 <!--
                 {{-- BADGE --}}
                 <div class="badge-tag glass-badge animate-on-scroll visible">
                     <i class="fas fa-globe-africa"></i>
@@ -456,7 +140,7 @@
                     <span class="badge bg-primary text-white ms-2" style="font-size: 0.6rem;">
                         +{{ number_format($totalEgressos, 0, ',', '.') }}
                     </span>
-                </div>
+                </div> -->
 
                 {{-- TÍTULO --}}
                 <h1 class="hero-title animate-on-scroll visible">
@@ -468,7 +152,7 @@
                 <div class="hero-subtitle-wrapper animate-on-scroll visible">
                     <p class="lead hero-subtitle">
                         Encontre antigos colegas de turma, descubra novas oportunidades
-                        de carreira e mantenha o seu vínculo ativo com a sua instituição.
+                        de carreira e mantenha o seu vínculo ativo com a nossa Instituição.
                     </p>
                 </div>
 
@@ -495,6 +179,7 @@
 
         </div>
 
+        <!--
         {{-- DOTS DE NAVEGAÇÃO (13 slides) --}}
         <div class="hero-dots" id="heroDots">
             <button class="hero-dot active" data-slide="0"  aria-label="Slide 1"></button>
@@ -510,7 +195,8 @@
             <button class="hero-dot"        data-slide="10" aria-label="Slide 11"></button>
             <button class="hero-dot"        data-slide="11" aria-label="Slide 12"></button>
             <button class="hero-dot"        data-slide="12" aria-label="Slide 13"></button>
-        </div>
+        </div> 
+        --> 
 
     </section>
 
@@ -1672,58 +1358,6 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    {{-- ============================================================
-         JS DO CARROSSEL DE FUNDO (HERO) — LOOP INFINITO
-         4 SEGUNDOS POR IMAGEM
-    ============================================================ --}}
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const slides = document.querySelectorAll('.hero-bg-slide');
-        const dots   = document.querySelectorAll('.hero-dot');
-
-        if (!slides.length) return;
-
-        let current = 0;
-        let autoplay;
-
-        function goTo(index) {
-            slides[current]?.classList.remove('active');
-            dots[current]?.classList.remove('active');
-
-            current = (index + slides.length) % slides.length;
-
-            slides[current]?.classList.add('active');
-            dots[current]?.classList.add('active');
-        }
-
-        function next() { goTo(current + 1); }
-        function prev() { goTo(current - 1); }
-
-        function startAutoplay() {
-            autoplay = setInterval(next, 5000);   // ⏱️ 4 SEGUNDOS
-        }
-
-        function stopAutoplay() {
-            clearInterval(autoplay);
-        }
-
-        dots.forEach((dot, i) => {
-            dot.addEventListener('click', () => {
-                goTo(i);
-                stopAutoplay();
-                startAutoplay();
-            });
-        });
-
-        // ⚠️ Pausa ao passar o rato — REMOVIDO para que troque SEMPRE
-        // Se quiseres que pause ao passar o rato, basta descomentar as 2 linhas abaixo:
-        // const hero = document.querySelector('.hero-fullwidth');
-        // hero?.addEventListener('mouseenter', stopAutoplay);
-        // hero?.addEventListener('mouseleave', startAutoplay);
-
-        startAutoplay();
-    });
-    </script>
-
+  
 </body>
 </html>

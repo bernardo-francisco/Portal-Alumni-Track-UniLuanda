@@ -38,6 +38,10 @@ class Egresso extends Model
         'observacoes',
         'data_verificacao',
         'verificado',
+        // OtpCode
+        'claimed_at',
+        'claimed_ip',
+        'claimed_user_agent',
     ];
 
     protected $casts = [
@@ -47,6 +51,7 @@ class Egresso extends Model
         'verificado'       => 'boolean',
         'data_validacao'   => 'datetime',
         'data_verificacao' => 'datetime',
+        'claimed_at' => 'datetime',
     ];
 
     // =============================================

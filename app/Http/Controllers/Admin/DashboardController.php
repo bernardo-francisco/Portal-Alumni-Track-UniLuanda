@@ -15,113 +15,75 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * ============================================================
+     * SCOPE: Egressos REAIS
+     * ============================================================
+     * Aplica o mesmo filtro usado em /admin/egressos:
+     *   - Exclui admins (tipo/role/is_admin)
+     *   - Exclui número de processo ADMIN_*
+     *   - Só conta aprovados OU pendentes criados pelo admin
+     *     (não PENDENTE_*)
+     */
+    private function scopeEgressosReais()
+    {
+        return Egresso::query()
+            ->whereHas('user', function ($q) {
+                $q->where('is_admin', false)
+                  ->where('tipo', '!=', 'admin')
+                  ->where('role', '!=', 'admin');
+            })
+            ->where(function ($q) {
+                $q->where('status_validacao', 'aprovado')
+                  ->orWhere(function ($sub) {
+                      $sub->where('status_validacao', 'pendente')
+                          ->whereNotNull('numero_processo')
+                          ->where('numero_processo', 'NOT LIKE', 'PENDENTE_%')
+                          ->where('numero_processo', 'NOT LIKE', 'ADMIN_%');
+                  });
+            });
+    }
+
+    /**
+     * ============================================================
+     * SCOPE: Egressos PENDENTES de validação
+     * ============================================================
+     * Só os PENDENTE_* (registados pelo próprio)
+     */
+    private function scopeEgressosPendentesValidacao()
+    {
+        return Egresso::query()
+            ->whereHas('user', function ($q) {
+                $q->where('is_admin', false)
+                  ->where('tipo', '!=', 'admin')
+                  ->where('role', '!=', 'admin');
+            })
+            ->where('status_validacao', 'pendente')
+            ->whereNotNull('numero_processo')
+            ->where('numero_processo', 'LIKE', 'PENDENTE_%');
+    }
+
     public function index()
     {
         // ============================================================
         // 1. ESTATÍSTICAS PRINCIPAIS
         // ============================================================
 
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL DE EGRESSOS
-        |--------------------------------------------------------------------------
-        | Conta TODOS os egressos reais, independentemente do estado.
-        | O administrador NÃO entra porque:
-        | 1. A conta ligada ao egresso tem role/tipo = admin
-        | 2. O perfil administrativo possui numero_processo ADMIN_...
-        |--------------------------------------------------------------------------
-        */
+        $totalEgressos = $this->scopeEgressosReais()->count();
 
-        $totalEgressos = Egresso::query()
-            ->where(function ($query) {
-                $query->whereDoesntHave('user', function ($q) {
-                    $q->where(function ($admin) {
-                        $admin->where('role', 'admin')
-                              ->orWhere('tipo', 'admin');
-                    });
-                })
-                ->orWhereNull('user_id');
-            })
-            ->where(function ($query) {
-                $query->whereNull('numero_processo')
-                      ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-            })
-            ->count();
-
-        /*
-        |--------------------------------------------------------------------------
-        | EGRESSOS ATIVOS
-        |--------------------------------------------------------------------------
-        */
-
-        $egressosActivos = Egresso::query()
+        $egressosActivos = $this->scopeEgressosReais()
             ->where('status', 'active')
-            ->where(function ($query) {
-                $query->whereDoesntHave('user', function ($q) {
-                    $q->where(function ($admin) {
-                        $admin->where('role', 'admin')
-                              ->orWhere('tipo', 'admin');
-                    });
-                })
-                ->orWhereNull('user_id');
-            })
-            ->where(function ($query) {
-                $query->whereNull('numero_processo')
-                      ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-            })
             ->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | EGRESSOS VERIFICADOS
-        |--------------------------------------------------------------------------
-        */
-
-        $egressosVerificados = Egresso::query()
+        $egressosVerificados = $this->scopeEgressosReais()
             ->where('verificado', true)
-            ->where(function ($query) {
-                $query->whereDoesntHave('user', function ($q) {
-                    $q->where(function ($admin) {
-                        $admin->where('role', 'admin')
-                              ->orWhere('tipo', 'admin');
-                    });
-                })
-                ->orWhereNull('user_id');
-            })
-            ->where(function ($query) {
-                $query->whereNull('numero_processo')
-                      ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-            })
             ->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | EGRESSOS PENDENTES DE VALIDAÇÃO
-        |--------------------------------------------------------------------------
-        */
+        $egressosPendentes = $this->scopeEgressosPendentesValidacao()->count();
 
-        $egressosPendentes = Egresso::query()
-            ->where('status_validacao', 'pendente')
-            ->where(function ($query) {
-                $query->whereDoesntHave('user', function ($q) {
-                    $q->where(function ($admin) {
-                        $admin->where('role', 'admin')
-                              ->orWhere('tipo', 'admin');
-                    });
-                })
-                ->orWhereNull('user_id');
-            })
-            ->where(function ($query) {
-                $query->whereNull('numero_processo')
-                      ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-            })
-            ->count();
-
-        /*
-        |--------------------------------------------------------------------------
-        | OUTRAS ESTATÍSTICAS
-        |--------------------------------------------------------------------------
-        */
+        // ============================================================
+        // 2. OUTRAS ESTATÍSTICAS
+        // ============================================================
 
         $stats = [
             'total_egressos'        => $totalEgressos,
@@ -130,34 +92,12 @@ class DashboardController extends Controller
             'egressos_pendentes'    => $egressosPendentes,
 
             // Gráfico circular — Distribuição
-            'egressos_inativos'     => Egresso::query()
+            'egressos_inativos'     => $this->scopeEgressosReais()
                 ->where('status', 'inactive')
-                ->where(function ($query) {
-                    $query->whereDoesntHave('user', function ($q) {
-                        $q->where(function ($admin) {
-                            $admin->where('role', 'admin')->orWhere('tipo', 'admin');
-                        });
-                    })->orWhereNull('user_id');
-                })
-                ->where(function ($query) {
-                    $query->whereNull('numero_processo')
-                        ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-                })
                 ->count(),
 
-            'egressos_lost_contact' => Egresso::query()
+            'egressos_lost_contact' => $this->scopeEgressosReais()
                 ->where('status', 'lost_contact')
-                ->where(function ($query) {
-                    $query->whereDoesntHave('user', function ($q) {
-                        $q->where(function ($admin) {
-                            $admin->where('role', 'admin')->orWhere('tipo', 'admin');
-                        });
-                    })->orWhereNull('user_id');
-                })
-                ->where(function ($query) {
-                    $query->whereNull('numero_processo')
-                        ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-                })
                 ->count(),
 
             // Restantes campos
@@ -172,9 +112,8 @@ class DashboardController extends Controller
             'total_servicos_pendentes'  => Servico::where('status', 'pendente')->count(),
         ];
 
-
         // ============================================================
-        // 2. EGRESSOS POR UNIDADE (gráfico de barras)
+        // 3. EGRESSOS POR UNIDADE (gráfico de barras)
         // ============================================================
 
         $stats_unidades = DB::table('unidades_organicas as u')
@@ -187,8 +126,20 @@ class DashboardController extends Controller
                 $join->on('e.curso_id', '=', 'c.id')
                      ->where('e.status', 'active')
                      ->where(function ($query) {
+                         $query->where('e.status_validacao', 'aprovado')
+                               ->orWhere(function ($sub) {
+                                   $sub->where('e.status_validacao', 'pendente')
+                                       ->whereNotNull('e.numero_processo')
+                                       ->where('e.numero_processo', 'NOT LIKE', 'PENDENTE_%')
+                                       ->where('e.numero_processo', 'NOT LIKE', 'ADMIN_%');
+                               });
+                     })
+                     ->where(function ($query) {
                          $query->whereNull('e.numero_processo')
-                               ->orWhere('e.numero_processo', 'NOT LIKE', 'ADMIN_%');
+                               ->orWhere(function ($sub) {
+                                   $sub->where('e.numero_processo', 'NOT LIKE', 'ADMIN_%')
+                                       ->where('e.numero_processo', 'NOT LIKE', 'PENDENTE_%');
+                               });
                      });
             })
             ->leftJoin('users as usr', 'e.user_id', '=', 'usr.id')
@@ -217,34 +168,20 @@ class DashboardController extends Controller
             })
             ->toArray();
 
-
         // ============================================================
-        // 3. ÚLTIMOS EGRESSOS
+        // 4. ÚLTIMOS EGRESSOS (apenas egressos reais)
         // ============================================================
 
-        $ultimos_egressos = Egresso::with([
-                'curso.unidade',
-                'user'
-            ])
+        $ultimos_egressos = $this->scopeEgressosReais()
+            ->with(['curso.unidade', 'user'])
             ->where('status', 'active')
-            ->whereDoesntHave('user', function ($q) {
-                $q->where(function ($admin) {
-                    $admin->where('role', 'admin')
-                          ->orWhere('tipo', 'admin');
-                });
-            })
-            ->where(function ($query) {
-                $query->whereNull('numero_processo')
-                      ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-            })
             ->where('created_at', '>=', now()->subDays(7))
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-
         // ============================================================
-        // 4. OPORTUNIDADES RECENTES
+        // 5. OPORTUNIDADES RECENTES
         // ============================================================
 
         $oportunidades_recentes = Oportunidade::with('unidade')
@@ -259,9 +196,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-
         // ============================================================
-        // 5. PRÓXIMOS EVENTOS
+        // 6. PRÓXIMOS EVENTOS
         // ============================================================
 
         $eventos_proximos = Evento::with('unidade')
@@ -281,9 +217,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-
         // ============================================================
-        // 6. EGRESSOS POR CURSO
+        // 7. EGRESSOS POR CURSO
         // ============================================================
 
         $stats_cursos = DB::table('cursos as c')
@@ -295,8 +230,20 @@ class DashboardController extends Controller
                 $join->on('e.curso_id', '=', 'c.id')
                     ->where('e.status', 'active')
                     ->where(function ($query) {
+                        $query->where('e.status_validacao', 'aprovado')
+                              ->orWhere(function ($sub) {
+                                  $sub->where('e.status_validacao', 'pendente')
+                                      ->whereNotNull('e.numero_processo')
+                                      ->where('e.numero_processo', 'NOT LIKE', 'PENDENTE_%')
+                                      ->where('e.numero_processo', 'NOT LIKE', 'ADMIN_%');
+                              });
+                    })
+                    ->where(function ($query) {
                         $query->whereNull('e.numero_processo')
-                              ->orWhere('e.numero_processo', 'NOT LIKE', 'ADMIN_%');
+                              ->orWhere(function ($sub) {
+                                  $sub->where('e.numero_processo', 'NOT LIKE', 'ADMIN_%')
+                                      ->where('e.numero_processo', 'NOT LIKE', 'PENDENTE_%');
+                              });
                     });
             })
             ->leftJoin('users as usr', 'e.user_id', '=', 'usr.id')
@@ -325,25 +272,15 @@ class DashboardController extends Controller
             })
             ->toArray();
 
-
         // ============================================================
-        // 7. ATIVIDADES RECENTES
+        // 8. ATIVIDADES RECENTES
         // ============================================================
 
         $atividades_recentes = collect();
 
-        // 7.1 Novos egressos
-        Egresso::with('user')
-            ->whereDoesntHave('user', function ($q) {
-                $q->where(function ($admin) {
-                    $admin->where('role', 'admin')
-                          ->orWhere('tipo', 'admin');
-                });
-            })
-            ->where(function ($query) {
-                $query->whereNull('numero_processo')
-                      ->orWhere('numero_processo', 'NOT LIKE', 'ADMIN_%');
-            })
+        // 8.1 Novos egressos (apenas egressos reais)
+        $this->scopeEgressosReais()
+            ->with('user')
             ->orderBy('created_at', 'desc')
             ->take(3)
             ->get()
@@ -358,7 +295,7 @@ class DashboardController extends Controller
                 ]);
             });
 
-        // 7.2 Últimas candidaturas
+        // 8.2 Últimas candidaturas
         Candidatura::with(['egresso', 'oportunidade'])
             ->orderBy('created_at', 'desc')
             ->take(3)
@@ -376,7 +313,7 @@ class DashboardController extends Controller
                 ]);
             });
 
-        // 7.3 Últimas inscrições em eventos
+        // 8.3 Últimas inscrições em eventos
         InscricaoEvento::with(['egresso', 'evento'])
             ->orderBy('created_at', 'desc')
             ->take(3)
@@ -394,9 +331,8 @@ class DashboardController extends Controller
                 ]);
             });
 
-
         // ============================================================
-        // 8. ORDENAR ATIVIDADES
+        // 9. ORDENAR ATIVIDADES
         // ============================================================
 
         $atividades_recentes = $atividades_recentes
@@ -404,9 +340,8 @@ class DashboardController extends Controller
             ->take(8)
             ->values();
 
-
         // ============================================================
-        // 9. RETORNAR PARA A VIEW
+        // 10. RETORNAR PARA A VIEW
         // ============================================================
 
         return view(

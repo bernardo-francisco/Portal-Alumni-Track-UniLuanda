@@ -8,9 +8,7 @@
         <h1 class="h2 mb-0">Novo Egresso</h1>
         <p class="text-muted">Registar um novo ex-estudante com todos os dados</p>
     </div>
-    <a href="{{ route('admin.egressos.index') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left"></i> Voltar
-    </a>
+   
 </div>
 
 @if($errors->any())
@@ -149,23 +147,29 @@
                     <small class="text-muted d-block mt-1" id="aviso-curso"></small>
                 </div>
 
-                <div class="col-md-4">
-                    <label for="ano_formatura" class="form-label">Ano de Formatura</label>
-                    <input type="number" name="ano_formatura" id="ano_formatura"
-                           class="form-control @error('ano_formatura') is-invalid @enderror"
-                           value="{{ old('ano_formatura') }}"
-                           min="1990" max="{{ date('Y') + 5 }}">
-                    @error('ano_formatura') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
+<div class="col-md-4">
+    <label for="ano_formatura" class="form-label">Ano de Formatura</label>
+    <input type="number" name="ano_formatura" id="ano_formatura"
+           class="form-control @error('ano_formatura') is-invalid @enderror"
+           value="{{ old('ano_formatura') }}"
+           min="1990" max="{{ date('Y') + 5 }}" step="1"
+           inputmode="numeric"
+           placeholder="Ex: {{ date('Y') }}"
+           autocomplete="off">
+    @error('ano_formatura') <div class="invalid-feedback">{{ $message }}</div> @enderror
+</div>
 
-                <div class="col-md-4">
-                    <label for="nota_final" class="form-label">Nota Final (0-20)</label>
-                    <input type="number" name="nota_final" id="nota_final"
-                           class="form-control @error('nota_final') is-invalid @enderror"
-                           value="{{ old('nota_final') }}"
-                           step="0.01" min="0" max="20">
-                    @error('nota_final') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
+<div class="col-md-4">
+    <label for="nota_final" class="form-label">Nota Final (0-20)</label>
+    <input type="number" name="nota_final" id="nota_final"
+           class="form-control @error('nota_final') is-invalid @enderror"
+           value="{{ old('nota_final') }}"
+           step="0.01" min="0" max="20"
+           inputmode="decimal"
+           placeholder="Ex: 15.5"
+           autocomplete="off">
+    @error('nota_final') <div class="invalid-feedback">{{ $message }}</div> @enderror
+</div>
 
                 <!-- ============================================================
                      LOCALIZAÇÃO

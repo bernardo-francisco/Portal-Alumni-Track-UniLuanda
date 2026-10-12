@@ -42,6 +42,7 @@ return [
     ],
     'image' => 'O campo :attribute deve ser uma imagem.',
     'in' => 'O valor selecionado para :attribute é inválido.',
+    'indisposable' => 'Não são permitidos endereços de email descartáveis.',   // ✅ NOVO
     'integer' => 'O campo :attribute deve ser um número inteiro.',
     'ip' => 'O campo :attribute deve ser um endereço IP válido.',
     'ipv4' => 'O campo :attribute deve ser um endereço IPv4 válido.',

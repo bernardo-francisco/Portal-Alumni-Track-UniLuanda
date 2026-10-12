@@ -219,10 +219,10 @@
         </div>
     </div>
 
-    {{-- Paginação --}}
+    {{-- Paginação (view Bootstrap 5: setas com tamanho correcto) --}}
     @if(method_exists($notificacoes, 'hasPages') && $notificacoes->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $notificacoes->appends(request()->query())->links() }}
+            {{ $notificacoes->appends(request()->query())->links('pagination::bootstrap-5') }}
         </div>
     @endif
 
@@ -250,3 +250,4 @@
 @endif
 
 @endsection
+

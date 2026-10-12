@@ -74,11 +74,15 @@
 
         </div>
 
-        @include('layouts.partials.empresa_footer')
+        {{-- FOOTER (apenas uma vez, dentro do main) --}}
+        @include('layouts.partials.painel_footer', ['contexto' => 'empresa'])
 
     </main>
 
 </div>
+
+{{-- CHATBOT FLUTUANTE --}}
+@include('components.chatbot-floating', ['chatbotRole' => 'empresa'])
 
 {{-- Bootstrap 5 --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

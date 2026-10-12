@@ -22,6 +22,8 @@ class User extends Authenticatable
         'role',
         'tipo',
         'is_active',
+        'registration_ip',        
+        'registration_user_agent', 
     ];
 
     protected $hidden = [

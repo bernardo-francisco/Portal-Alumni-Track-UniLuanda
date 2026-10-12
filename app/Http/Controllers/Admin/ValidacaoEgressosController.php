@@ -97,66 +97,60 @@ class ValidacaoEgressosController extends Controller
     }
 
 
-    /**
-     * ============================================================
-     * LISTA OS EGRESSOS PENDENTES DE VALIDAÇÃO
-     * ============================================================
-     */
-    public function index()
-    {
-        /*
-         * IMPORTANTE:
-         *
-         * Antes:
-         * Egresso::where('status_validacao', 'pendente')
-         *
-         * Isso permitia que o ADMIN aparecesse.
-         *
-         * Agora usamos queryEgressosReais().
-         */
-        $pendentes = $this->queryEgressosReais()
-            ->with(['curso', 'unidade', 'user'])
-            ->where('status_validacao', 'pendente')
-            ->orderBy('created_at', 'asc')
-            ->paginate(20);
+            /**
+             * ============================================================
+             * LISTA OS EGRESSOS PENDENTES DE VALIDAÇÃO
+             * ============================================================
+             */
+         public function index()
+{
+    // ✅ FASE 2 — Só mostra os registos PENDENTE_ (registados pelo próprio)
+    // Egressos criados pelo admin são automaticamente aprovados
+    $pendentes = $this->queryEgressosReais()
+        ->with(['curso', 'unidade', 'user'])
+        ->where('status_validacao', 'pendente')
+        ->whereNotNull('numero_processo')
+        ->where('numero_processo', 'LIKE', 'PENDENTE_%')
+        ->orderBy('created_at', 'asc')
+        ->paginate(20);
 
+    // ============================================================
+    // ESTATÍSTICAS — todas coerentes com o filtro novo
+    // ============================================================
 
-        /**
-         * ========================================================
-         * ESTATÍSTICAS
-         * ========================================================
-         *
-         * Todas as estatísticas agora excluem administradores.
-         */
-        $pendentesCount = $this->queryEgressosReais()
-            ->where('status_validacao', 'pendente')
-            ->count();
+    // Pendentes: só PENDENTE_
+    $pendentesCount = $this->queryEgressosReais()
+        ->where('status_validacao', 'pendente')
+        ->whereNotNull('numero_processo')
+        ->where('numero_processo', 'LIKE', 'PENDENTE_%')
+        ->count();
 
-        $aprovadosCount = $this->queryEgressosReais()
-            ->where('status_validacao', 'aprovado')
-            ->count();
+    // Aprovados: TODOS (incluindo os criados pelo admin)
+    $aprovadosCount = $this->queryEgressosReais()
+        ->where('status_validacao', 'aprovado')
+        ->count();
 
-        $reprovadosCount = $this->queryEgressosReais()
-            ->where('status_validacao', 'reprovado')
-            ->count();
+    // Reprovados
+    $reprovadosCount = $this->queryEgressosReais()
+        ->where('status_validacao', 'reprovado')
+        ->count();
 
-        $totalCount = $this->queryEgressosReais()
-            ->count();
+    // Total: TODOS os egressos reais (excluindo admins)
+    $totalCount = $this->queryEgressosReais()
+        ->count();
 
+    $stats = [
+        'pendentes'  => $pendentesCount,
+        'aprovados'  => $aprovadosCount,
+        'reprovados' => $reprovadosCount,
+        'total'      => $totalCount,
+    ];
 
-        $stats = [
-            'pendentes'  => $pendentesCount,
-            'aprovados'  => $aprovadosCount,
-            'reprovados' => $reprovadosCount,
-            'total'      => $totalCount,
-        ];
-
-
-        return view(
-            'admin.validacao.index',
-            compact('pendentes', 'stats')
-        );
-    }
+    return view(
+        'admin.validacao.index',
+        compact('pendentes', 'stats')
+    );
+}
 
 
     /**

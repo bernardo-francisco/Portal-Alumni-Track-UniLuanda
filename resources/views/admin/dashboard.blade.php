@@ -150,10 +150,10 @@
         ]) }}"></canvas>
                     </div>
                     <div class="d-flex justify-content-center gap-3 mt-2 flex-wrap">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="d-inline-block rounded-circle" style="width:12px;height:12px;background:#2563eb;"></span>
-                        <small class="text-muted">Ativos ({{ $stats['egressos_activos'] ?? 0 }})</small>
-                    </div>
+                   <div class="d-flex align-items-center gap-2">
+                    <span class="d-inline-block rounded-circle" style="width:12px;height:12px;background:#c9a227;"></span>
+                    <small class="text-muted">Ativos ({{ $stats['egressos_activos'] ?? 0 }})</small>
+                </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="d-inline-block rounded-circle" style="width:12px;height:12px;background:#f59e0b;"></span>
                         <small class="text-muted">Inativos ({{ $stats['egressos_inativos'] ?? 0 }})</small>

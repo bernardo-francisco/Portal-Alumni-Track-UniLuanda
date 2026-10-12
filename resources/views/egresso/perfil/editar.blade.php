@@ -5,6 +5,176 @@
 @section('page_title', '✏️ Editar Perfil')
 @section('page_subtitle', 'Actualize as suas informações pessoais')
 
+@push('styles')
+<style>
+/* ============================================================
+   AVATAR — Preview do perfil (tamanho controlado)
+============================================================ */
+.profile-header .avatar-upload-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 110px;
+    height: 110px;
+    flex-shrink: 0;
+}
+
+.profile-header .avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #ffffff;
+    box-shadow: 0 6px 20px rgba(10, 10, 10, 0.15);
+    background: #f5f4ef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-header .avatar-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
+
+.profile-header .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-gold, linear-gradient(135deg, #a67c00, #c9a227, #e0b93d));
+    color: #0a0a0a;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    border-radius: 50%;
+}
+
+.profile-header .avatar-change-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary, #c9a227);
+    color: #0a0a0a;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 8px rgba(10, 10, 10, 0.2);
+    transition: all 0.2s ease;
+}
+
+.profile-header .avatar-change-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-dark, #a67c00);
+}
+
+/* Nome do perfil */
+.profile-header .profile-name {
+    color: var(--black, #0a0a0a);
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+}
+
+/* Pills informativas (nº processo + email) */
+.profile-header .header-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--surface-alt, #faf9f5);
+    border: 1px solid var(--border-color, #e6e2d3);
+    border-radius: 20px;
+    color: var(--text-muted, #525252);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.profile-header .header-pill i {
+    color: var(--primary-dark, #a67c00);
+    font-size: 0.72rem;
+}
+
+/* Tabs modernas */
+.nav-tabs-modern {
+    border-bottom: none;
+    gap: 6px;
+}
+
+.nav-tabs-modern .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid transparent;
+    border-radius: 10px 10px 0 0;
+    color: var(--text-muted, #525252);
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs-modern .nav-link:hover {
+    background: var(--surface-alt, #faf9f5);
+    color: var(--black, #0a0a0a);
+}
+
+.nav-tabs-modern .nav-link.active {
+    background: #ffffff;
+    border-color: var(--border-color, #e6e2d3) var(--border-color, #e6e2d3) transparent;
+    color: var(--primary-dark, #a67c00);
+    border-bottom: 2px solid var(--primary, #c9a227);
+}
+
+.nav-tabs-modern .nav-link i {
+    font-size: 0.85rem;
+}
+
+/* Section header */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.section-header .section-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.1rem;
+}
+
+/* Responsivo */
+@media (max-width: 576px) {
+    .profile-header .avatar-upload-wrapper,
+    .profile-header .avatar-wrapper {
+        width: 90px;
+        height: 90px;
+    }
+
+    .profile-header .avatar-placeholder {
+        font-size: 1.8rem;
+    }
+
+    .profile-header .profile-name {
+        font-size: 1.15rem;
+    }
+}
+</style>
+@endpush
+
 @section('content')
 
 @php
@@ -536,4 +706,3 @@
 </div>
 
 @endsection
-

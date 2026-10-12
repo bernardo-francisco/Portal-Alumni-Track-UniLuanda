@@ -39,6 +39,7 @@
     {{-- TOPBAR ADMIN --}}
     @include('layouts.partials.admin_topbar')
 
+
     {{-- MAIN --}}
     <main class="main-content">
 
@@ -81,20 +82,7 @@
         </div>
 
         {{-- FOOTER --}}
-        <footer class="footer-system py-3 mt-auto" style="flex-shrink: 0;">
-            <div class="container-fluid px-4">
-                <div class="text-center">
-                    <small class="footer-text">
-                        <img src="{{ asset('uploads/logos/Universidade-Logotipo.png') }}"
-                             alt="UniLuanda"
-                             style="height:20px;width:20px;object-fit:contain;display:inline-block;margin-right:6px;vertical-align:middle;border-radius:4px;">
-                        &copy; {{ date('Y') }} UniLuanda - Painel Administrativo
-                        <span class="mx-2 text-muted">|</span>
-                        <span class="text-muted">VersÃ£o 1.0</span>
-                    </small>
-                </div>
-            </div>
-        </footer>
+        @include('layouts.partials.painel_footer', ['contexto' => 'admin'])
 
     </main>
 

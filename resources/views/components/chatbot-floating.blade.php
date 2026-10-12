@@ -7,7 +7,9 @@
 
     $chatbotRole = $chatbotRole ?? 'egresso';
 
-    $isAdmin = $chatbotRole === 'admin';
+    $isAdmin   = $chatbotRole === 'admin';
+    $isEgresso = $chatbotRole === 'egresso';
+    $isEmpresa = $chatbotRole === 'empresa';
 
 
     /*
@@ -18,14 +20,17 @@
 
     if ($isAdmin) {
 
-        $sendUrl = url('/admin/chatbot/enviar');
-
+        $sendUrl   = url('/admin/chatbot/enviar');
         $verifyUrl = url('/admin/chatbot/verificar');
+
+    } elseif ($isEmpresa) {
+
+        $sendUrl   = url('/empresa/chatbot/enviar');
+        $verifyUrl = url('/empresa/chatbot/verificar');
 
     } else {
 
-        $sendUrl = url('/egresso/chatbot/enviar');
-
+        $sendUrl   = url('/egresso/chatbot/enviar');
         $verifyUrl = url('/egresso/chatbot/verificar');
 
     }
@@ -37,9 +42,13 @@
     |--------------------------------------------------------------------------
     */
 
-    $chatbotTitle = $isAdmin
-        ? 'Assistente Administrativo'
-        : 'Assistente do Egresso';
+    if ($isAdmin) {
+        $chatbotTitle = 'Assistente Administrativo';
+    } elseif ($isEmpresa) {
+        $chatbotTitle = 'Assistente da Empresa';
+    } else {
+        $chatbotTitle = 'Assistente do Egresso';
+    }
 
     $chatbotSubtitle = 'Estou aqui para ajudar-te';
 
@@ -50,15 +59,26 @@
     |--------------------------------------------------------------------------
     */
 
-    $welcomeMessage = $isAdmin
+    if ($isAdmin) {
 
-        ? 'Olá, Administrador! 👋<br><br>
+        $welcomeMessage = 'Olá, Administrador! 👋<br><br>
            Sou o teu assistente virtual da área administrativa.
-           Posso orientar-te nas principais funcionalidades da plataforma UniLuanda.'
+           Posso orientar-te nas principais funcionalidades da plataforma UniLuanda.';
 
-        : 'Olá! 👋<br><br>
+    } elseif ($isEmpresa) {
+
+        $welcomeMessage = 'Olá! 👋<br><br>
+           Sou o teu assistente virtual da empresa.
+           Posso ajudar-te a gerir oportunidades, candidaturas e o perfil
+           da tua empresa na plataforma UniLuanda.';
+
+    } else {
+
+        $welcomeMessage = 'Olá! 👋<br><br>
            Sou o teu assistente virtual.
            Posso ajudar-te a utilizar a plataforma UniLuanda.';
+
+    }
 
 
     /*
@@ -99,6 +119,41 @@
                 'icon' => 'fa-chart-column',
                 'text' => 'Relatórios',
                 'message' => 'Como posso consultar os relatórios?'
+            ],
+        ];
+
+    } elseif ($isEmpresa) {
+
+        $suggestions = [
+            [
+                'icon' => 'fa-briefcase',
+                'text' => 'Oportunidades',
+                'message' => 'Como posso gerir as oportunidades?'
+            ],
+            [
+                'icon' => 'fa-file-signature',
+                'text' => 'Candidaturas',
+                'message' => 'Como vejo as candidaturas recebidas?'
+            ],
+            [
+                'icon' => 'fa-building',
+                'text' => 'Perfil',
+                'message' => 'Como atualizo o perfil da minha empresa?'
+            ],
+            [
+                'icon' => 'fa-chart-line',
+                'text' => 'Dashboard',
+                'message' => 'O que mostra o meu dashboard?'
+            ],
+            [
+                'icon' => 'fa-user-check',
+                'text' => 'Aprovar',
+                'message' => 'Como aprovo candidaturas?'
+            ],
+            [
+                'icon' => 'fa-headset',
+                'text' => 'Suporte',
+                'message' => 'Como contactar o suporte?'
             ],
         ];
 
@@ -357,7 +412,7 @@
 
 
 <!-- ================================================================
-     CSS
+     CSS — Cores UniLuanda (Preto + Dourado)
 ================================================================ -->
 
 <style>
@@ -396,7 +451,7 @@
 
     border-radius: 50%;
 
-    background: #0d6efd;
+    background: linear-gradient(135deg, #a67c00 0%, #c9a227 100%);
 
     color: #ffffff;
 
@@ -411,7 +466,7 @@
     cursor: pointer;
 
     box-shadow:
-        0 8px 25px rgba(0, 0, 0, 0.20);
+        0 8px 25px rgba(201, 162, 39, 0.45);
 
     transition:
         transform 0.2s ease,
@@ -425,7 +480,7 @@
     transform: translateY(-3px);
 
     box-shadow:
-        0 12px 30px rgba(0, 0, 0, 0.25);
+        0 12px 30px rgba(201, 162, 39, 0.6);
 
 }
 
@@ -460,7 +515,7 @@
 
     border-radius: 50px;
 
-    background: #dc3545;
+    background: #dc2626;
 
     color: #ffffff;
 
@@ -513,10 +568,11 @@
     flex-direction: column;
 
     box-shadow:
-        0 15px 50px rgba(0, 0, 0, 0.22);
+        0 15px 50px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(201, 162, 39, 0.1);
 
     border:
-        1px solid #e9ecef;
+        1px solid #e6e2d3;
 
 }
 
@@ -540,8 +596,8 @@
     background:
         linear-gradient(
             135deg,
-            #0d6efd,
-            #0b5ed7
+            #0a0a0a,
+            #1a1a1a
         );
 
     color: #ffffff;
@@ -553,6 +609,8 @@
     align-items: center;
 
     justify-content: space-between;
+
+    border-bottom: 2px solid #c9a227;
 
 }
 
@@ -576,7 +634,9 @@
 
     border-radius: 50%;
 
-    background: rgba(255, 255, 255, 0.18);
+    background: #c9a227;
+
+    color: #0a0a0a;
 
     display: flex;
 
@@ -585,6 +645,8 @@
     justify-content: center;
 
     font-size: 18px;
+
+    border: 2px solid rgba(255, 255, 255, 0.3);
 
 }
 
@@ -595,6 +657,8 @@
 
     font-weight: 700;
 
+    color: #ffffff;
+
 }
 
 
@@ -603,6 +667,8 @@
     opacity: 0.85;
 
     font-size: 11px;
+
+    color: #ffffff;
 
 }
 
@@ -631,13 +697,19 @@
 
     font-size: 16px;
 
+    transition: all 0.2s ease;
+
 }
 
 
 .chatbot-close:hover {
 
     background:
-        rgba(255, 255, 255, 0.15);
+        rgba(201, 162, 39, 0.3);
+
+    color: #c9a227;
+
+    transform: rotate(90deg);
 
 }
 
@@ -657,7 +729,7 @@
 
     padding: 18px;
 
-    background: #f8f9fa;
+    background: #faf9f5;
 
 }
 
@@ -683,9 +755,9 @@
 
     border-radius: 50%;
 
-    background: #e7f1ff;
+    background: #fbf6e3;
 
-    color: #0d6efd;
+    color: #a67c00;
 
     display: flex;
 
@@ -694,6 +766,8 @@
     justify-content: center;
 
     font-size: 13px;
+
+    border: 1px solid #f5e9bd;
 
 }
 
@@ -707,24 +781,26 @@
 
 .message-bubble {
 
-    background: #ffffff;
+    background: #fbf6e3;
 
     border:
-        1px solid #e9ecef;
+        1px solid #f5e9bd;
+
+    border-left: 3px solid #c9a227;
 
     border-radius:
         4px 14px 14px 14px;
 
     padding: 11px 13px;
 
-    color: #343a40;
+    color: #1a1a1a;
 
     font-size: 13px;
 
     line-height: 1.55;
 
     box-shadow:
-        0 2px 5px rgba(0, 0, 0, 0.04);
+        0 2px 5px rgba(10, 10, 10, 0.04);
 
 }
 
@@ -767,7 +843,7 @@
 
 .user-message .message-bubble {
 
-    background: #0d6efd;
+    background: linear-gradient(135deg, #0a0a0a 0%, #262626 100%);
 
     color: #ffffff;
 
@@ -775,6 +851,8 @@
         14px 4px 14px 14px;
 
     border: none;
+
+    border-right: 3px solid #c9a227;
 
 }
 
@@ -809,15 +887,15 @@
 .chatbot-suggestion {
 
     border:
-        1px solid #dce6f5;
+        1px solid #c9a227;
 
-    background: #ffffff;
+    background: #fbf6e3;
 
     border-radius: 10px;
 
     padding: 9px 8px;
 
-    color: #0d6efd;
+    color: #a67c00;
 
     font-size: 11px;
 
@@ -841,9 +919,11 @@
 
 .chatbot-suggestion:hover {
 
-    background: #eaf3ff;
+    background: #c9a227;
 
-    border-color: #0d6efd;
+    color: #0a0a0a;
+
+    border-color: #a67c00;
 
     transform: translateY(-1px);
 
@@ -873,9 +953,9 @@
 
     border-radius: 10px;
 
-    background: #eef5ff;
+    background: #fbf6e3;
 
-    color: #5c6775;
+    color: #5c4a1a;
 
     font-size: 11px;
 
@@ -885,12 +965,14 @@
 
     gap: 7px;
 
+    border: 1px solid #f5e9bd;
+
 }
 
 
 .chatbot-help-footer i {
 
-    color: #0d6efd;
+    color: #a67c00;
 
     margin-top: 2px;
 
@@ -909,7 +991,7 @@
     background: #ffffff;
 
     border-top:
-        1px solid #e9ecef;
+        1px solid #e6e2d3;
 
     padding: 11px;
 
@@ -924,15 +1006,28 @@
 
     gap: 7px;
 
-    background: #f5f6f8;
+    background: #faf9f5;
 
     border:
-        1px solid #e1e4e8;
+        1px solid #e6e2d3;
 
     border-radius: 12px;
 
     padding:
         4px 5px 4px 12px;
+
+    transition: all 0.2s ease;
+
+}
+
+
+.chatbot-input-wrapper:focus-within {
+
+    border-color: #c9a227;
+
+    box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.15);
+
+    background: #ffffff;
 
 }
 
@@ -949,7 +1044,7 @@
 
     font-size: 13px;
 
-    color: #343a40;
+    color: #1a1a1a;
 
     min-width: 0;
 
@@ -973,7 +1068,7 @@
 
     border-radius: 10px;
 
-    background: #0d6efd;
+    background: linear-gradient(135deg, #a67c00 0%, #c9a227 100%);
 
     color: #ffffff;
 
@@ -985,12 +1080,18 @@
 
     cursor: pointer;
 
+    transition: all 0.25s ease;
+
 }
 
 
 .chatbot-send:hover {
 
-    background: #0b5ed7;
+    background: linear-gradient(135deg, #c9a227 0%, #e0b93d 100%);
+
+    transform: scale(1.08);
+
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.45);
 
 }
 
@@ -1032,7 +1133,7 @@
 
     border-radius: 50%;
 
-    background: #9aa0a6;
+    background: #c9a227;
 
     animation:
         chatbotTyping 1.2s infinite ease-in-out;
@@ -1498,53 +1599,26 @@
     |--------------------------------------------------------------------------
     */
 
-    function adicionarMensagemBot(texto) {
-
-        if (!messages) {
-
-            return;
-
-        }
-
-        const div =
-            document.createElement(
-                'div'
-            );
-
-        div.className =
-            'chatbot-message bot-message';
-
-        div.innerHTML = `
-
-            <div class="message-avatar">
-
-                <i class="fas fa-robot"></i>
-
+function adicionarMensagemBot(texto) {
+    if (!messages) { return; }
+    const div = document.createElement('div');
+    div.className = 'chatbot-message bot-message';
+    div.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-bubble">
+                ${texto}    
             </div>
-
-            <div class="message-content">
-
-                <div class="message-bubble">
-
-                    ${escapeHtml(texto)}
-
-                </div>
-
-                <div class="message-time">
-
-                    Agora
-
-                </div>
-
+            <div class="message-time">
+                Agora
             </div>
-
-        `;
-
-        messages.appendChild(div);
-
-        scrollMessages();
-
-    }
+        </div>
+    `;
+    messages.appendChild(div);
+    scrollMessages();
+}
 
 
 

@@ -5,6 +5,7 @@
 @section('page_title', '📰 Feed de Publicações')
 @section('page_subtitle', 'Gerencie todas as publicações dos egressos')
 
+
 @section('content')
 
 {{-- ============================================================
@@ -259,3 +260,4 @@
 
 @endif
 
+@endsection

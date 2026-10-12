@@ -12,9 +12,7 @@
         <a href="{{ route('admin.egressos.show', $egresso->id) }}" class="btn btn-outline-primary me-2">
             <i class="fas fa-eye"></i> Ver Perfil
         </a>
-        <a href="{{ route('admin.egressos.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </a>
+       
     </div>
 </div>
 
@@ -175,22 +173,27 @@
                     @error('curso_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     <small class="text-muted d-block mt-1" id="aviso-curso"></small>
                 </div>
-
                 <div class="col-md-4">
                     <label for="ano_formatura" class="form-label">Ano de Formatura</label>
                     <input type="number" name="ano_formatura" id="ano_formatura"
-                           class="form-control @error('ano_formatura') is-invalid @enderror"
-                           value="{{ old('ano_formatura', $egresso->ano_formatura) }}"
-                           min="1990" max="{{ date('Y') + 5 }}">
+                        class="form-control @error('ano_formatura') is-invalid @enderror"
+                        value="{{ old('ano_formatura', $egresso->ano_formatura) }}"
+                        min="1990" max="{{ date('Y') + 5 }}" step="1"
+                        inputmode="numeric"
+                        placeholder="Ex: {{ date('Y') }}"
+                        autocomplete="off">
                     @error('ano_formatura') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="col-md-4">
                     <label for="nota_final" class="form-label">Nota Final (0-20)</label>
                     <input type="number" name="nota_final" id="nota_final"
-                           class="form-control @error('nota_final') is-invalid @enderror"
-                           value="{{ old('nota_final', $egresso->nota_final) }}"
-                           step="0.01" min="0" max="20">
+                        class="form-control @error('nota_final') is-invalid @enderror"
+                        value="{{ old('nota_final', $egresso->nota_final) }}"
+                        step="0.01" min="0" max="20"
+                        inputmode="decimal"
+                        placeholder="Ex: 15.5"
+                        autocomplete="off">
                     @error('nota_final') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 

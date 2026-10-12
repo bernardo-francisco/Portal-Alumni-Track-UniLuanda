@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
-use Carbon\Carbon;                          // ✅ NOVO
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -96,6 +99,51 @@ class AppServiceProvider extends ServiceProvider
                     ]);
                 }
             }
+        });
+
+        // ============================================================
+        // ✅ FASE 1 — RATE LIMITERS ANTI-SPAM
+        // ============================================================
+
+        // ------------------------------------------------------------
+        // Rate limiter para o REGISTO
+        // ------------------------------------------------------------
+        // Bloqueia: máximo 3 registos por IP a cada hora
+        //           máximo 2 registos por email a cada hora
+        // ------------------------------------------------------------
+        RateLimiter::for('register', function (Request $request) {
+            return [
+                Limit::perHour(3)->by('ip:' . $request->ip()),
+
+                Limit::perHour(2)->by(
+                    'email:' . strtolower((string) $request->input('email'))
+                ),
+            ];
+        });
+
+        // ------------------------------------------------------------
+        // Rate limiter para a VERIFICAÇÃO DE Nº DE PROCESSO (AJAX)
+        // ------------------------------------------------------------
+        // Bloqueia: máximo 5 consultas por minuto por IP
+        // ------------------------------------------------------------
+        RateLimiter::for('verificar-processo', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        // ------------------------------------------------------------
+        // ✅ FASE 3 — Rate limiter para VERIFICAÇÃO DE OTP
+        // ------------------------------------------------------------
+        // Bloqueia: máximo 5 tentativas por minuto por IP
+        //           máximo 3 tentativas por minuto por email
+        // ------------------------------------------------------------
+        RateLimiter::for('register-otp', function (Request $request) {
+            return [
+                Limit::perMinute(5)->by('ip:' . $request->ip()),
+
+                Limit::perMinute(3)->by(
+                    'email:' . strtolower((string) $request->input('email'))
+                ),
+            ];
         });
     }
 }

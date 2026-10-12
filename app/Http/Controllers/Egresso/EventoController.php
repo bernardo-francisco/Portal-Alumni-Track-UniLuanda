@@ -155,12 +155,13 @@ class EventoController extends Controller
         try {
             DB::beginTransaction();
 
-            $inscricao = InscricaoEvento::create([
+           $inscricao = InscricaoEvento::create([
                 'egresso_id'            => $egresso->id,
                 'evento_id'             => $evento->id,
-                'status'                => 'confirmada',
-                'codigo_comprovativo'   => InscricaoEvento::gerarCodigoComprovativo(),
+                'status'                => 'pendente',
+                'codigo_comprovativo'   => null,
             ]);
+           
 
             DB::commit();
 
@@ -171,7 +172,7 @@ class EventoController extends Controller
                 Log::warning('Erro ao notificar inscrição: ' . $e->getMessage());
             }
 
-            return back()->with('success', 'Inscrição confirmada!');
+            return back()->with('success', 'Inscrição submetida! Aguarde a confirmação da administração para baixar o comprovativo.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -183,7 +184,7 @@ class EventoController extends Controller
     // ============================================================
     // 📄 COMPROVATIVO PDF
     // ============================================================
-    public function comprovativo($inscricaoId)
+        public function comprovativo($inscricaoId)
     {
         $egresso = Auth::user()->egresso;
 
@@ -196,6 +197,13 @@ class EventoController extends Controller
             ->where('id', $inscricaoId)
             ->where('egresso_id', $egresso->id)
             ->firstOrFail();
+
+        // ============================================================
+        // ✅ NOVO — Só permite baixar comprovativo se a inscrição foi APROVADA
+        // ============================================================
+        if ($inscricao->status !== 'confirmada') {
+            return back()->with('warning', 'A sua inscrição ainda não foi confirmada. Aguarde a aprovação da administração para baixar o comprovativo.');
+        }
 
         // ✅ Garantir que existe código
         if (!$inscricao->codigo_comprovativo) {

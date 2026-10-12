@@ -45,9 +45,20 @@
                 </div>
             @endif
 
-            @if(session('status'))
+                    @if(session('status'))
                 <div class="success-message">
-                    {{ session('status') }}
+                    @php
+                        $mensagensStatus = [
+                            'pending_email_verification' => '📧 Enviámos um email de verificação. Confirme o seu email para concluir o registo.',
+                            'pending_validation'         => '⏳ O seu cadastro está pendente de validação. Receberá um email quando for aprovado.',
+                            'empresa_pendente'           => '⏳ A sua empresa está pendente de validação pela administração.',
+                            'verified'                   => '✅ Conta verificada com sucesso!',
+                            'resent'                     => '📧 Email de verificação reenviado com sucesso.',
+                            'password_reset'             => '🔑 Se o email existir, receberá um link para redefinir a senha.',
+                        ];
+                    @endphp
+
+                    {{ $mensagensStatus[session('status')] ?? session('status') }}
                 </div>
             @endif
 
@@ -57,7 +68,6 @@
                 <div class="field-group">
                     <label for="email">E-mail</label>
                     <div class="field">
-                        <span class="field-icon">✉</span>
                         <input
                             id="email"
                             name="email"
@@ -70,23 +80,25 @@
                     </div>
                 </div>
 
-                <div class="field-group">
-                    <label for="password">Senha</label>
-                    <div class="field">
-                        <span class="field-icon">⌑</span>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="Sua senha"
-                            autocomplete="current-password"
-                            required
-                        >
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar senha">
-                            ◉
-                        </button>
-                    </div>
-                </div>
+             <div class="field-group">
+            <label for="password">Senha</label>
+            <div class="field">
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Sua senha"
+                    autocomplete="current-password"
+                    required
+                >
+                <button type="button"
+                        class="toggle-password"
+                        id="togglePassword"
+                        aria-label="Mostrar senha">
+                    <i class="fas fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
 
                 <div class="form-options">
                     <label class="remember">
@@ -98,12 +110,12 @@
                 </div>
 
                 <button type="submit" class="btn-login" id="submitButton">
-                    <span id="buttonText">Entrar →</span>
+                    <span id="buttonText">Entrar</span>
                 </button>
             </form>
 
             <div class="secure-note">
-                ♢ Seus dados estão protegidos
+                Seus dados estão protegidos
             </div>
 
             <p class="signup">
@@ -122,7 +134,7 @@
         <button type="button" class="modal-close" id="modalClose">&times;</button>
 
         <div id="modalForm">
-            <h2 class="modal-title">🔑 Recuperar Senha</h2>
+            <h2 class="modal-title">Recuperar Senha</h2>
             <p class="modal-subtitle">
                 Digite o seu endereço de email para receber um link de recuperação de senha.
             </p>
@@ -131,15 +143,18 @@
                 <span id="modalErrorMessage">Erro ao enviar. Tente novamente.</span>
             </div>
 
-            <div class="modal-field">
-                <label for="resetEmail">E-mail</label>
-                <input
-                    type="email"
-                    id="resetEmail"
-                    placeholder="voce@exemplo.com"
-                    required
-                >
+                        <div class="field-group">
+                <label for="email">E-mail</label>
+                <div class="field">
+                    <input
+                                type="email"
+                                id="resetEmail"
+                                placeholder="voce@exemplo.com"
+                                required
+                            >
+                </div>
             </div>
+
 
             <button type="button" class="modal-btn" id="resetPasswordBtn">
                 <span id="resetButtonText">Enviar Link de Recuperação</span>
@@ -147,7 +162,7 @@
         </div>
 
         <div class="modal-success" id="modalSuccess">
-            <h3>✅ Email Enviado!</h3>
+            <h3>Email Enviado!</h3>
             <p>
                 Um link de recuperação foi enviado para o seu endereço de email.<br>
                 Verifique sua caixa de entrada e spam.
@@ -167,3 +182,7 @@
 </div>
 
 @endsection
+
+@push('scripts')
+    @vite('resources/js/auth.js')
+@endpush

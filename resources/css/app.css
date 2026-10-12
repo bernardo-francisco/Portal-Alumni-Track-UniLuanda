@@ -1119,7 +1119,37 @@ body:has(.login-card), body:has(.register-card) { min-height: 100vh; display: fl
 .field input, .field select { flex: 1; min-width: 0; width: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; text-overflow: ellipsis; box-shadow: none; }
 .field select { cursor: pointer; }
 .field input::placeholder { color: var(--ink-300); }
-.toggle-password { padding: 3px; border: 0; background: transparent; color: var(--ink-300); cursor: pointer; flex-shrink: 0; }
+/* Botão de mostrar/ocultar senha */
+.toggle-password {
+    position: relative;
+    background: transparent;
+    border: none;
+    color: var(--ink-400);
+    cursor: pointer;
+    padding: 6px 8px;
+    font-size: 0.95rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+    z-index: 5;
+    outline: none;
+}
+
+.toggle-password:hover {
+    color: var(--primary-dark);
+}
+
+.toggle-password:active {
+    transform: scale(0.95);
+}
+
+.toggle-password i {
+    pointer-events: none;
+    font-size: 1rem;
+}
 .toggle-password:hover { color: var(--primary-dark); }
 .form-options { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 11px; }
 .remember { display: flex; align-items: center; gap: 7px; color: var(--ink-500); text-transform: none; letter-spacing: 0; font-weight: 400; cursor: pointer; transition: color .3s ease; }
@@ -1419,7 +1449,37 @@ a .stat-card, a:hover .stat-card, a:focus .stat-card { text-decoration: none; }
 .stat-card-warning   { background: linear-gradient(135deg, #b45309, #d97706); }
 .stat-card-success   { background: linear-gradient(135deg, #16a34a, #22c55e); }
 .stat-card-danger    { background: linear-gradient(135deg, #b91c1c, #ef4444); }
-.stat-card-info      { background: var(--gradient-gold); --stat-fg: var(--black); }
+.stat-card-info {
+    background: var(--gradient-gold);
+    --stat-fg: #ffffff;               /* ✅ Texto branco */
+    color: #ffffff;
+}
+
+/* ✅ Número do stat-card-info em branco */
+.stat-card-info .stat-card-value,
+.stat-card-info .stat-value {
+    color: #ffffff !important;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ Labels e descrições em branco */
+.stat-card-info .stat-card-label,
+.stat-card-info .stat-label,
+.stat-card-info .stat-card-desc,
+.stat-card-info .stat-desc {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ Ícone em branco sobre fundo translúcido */
+.stat-card-info .stat-card-icon,
+.stat-card-info .stat-icon-wrap,
+.stat-card-info .stat-icon {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
 .stat-card-secondary { background: linear-gradient(135deg, #525252, #a3a3a3); }
 
 .stat-icon-wrap, .stat-card-icon {
@@ -2956,10 +3016,10 @@ body.modal-open-custom { overflow: hidden !important; }
 
 
 /* ============================================================
-   REGISTO â€” MELHORIAS VISUAIS
+   REGISTO E MELHORIAS VISUAIS
 ============================================================ */
 
-/* ---------- AnimaÃ§Ã£o de entrada do painel ---------- */
+/* ---------- Animação de entrada do painel ---------- */
 @keyframes regPanelIn {
     from {
         opacity: 0;
@@ -3461,5 +3521,962 @@ body.error-body::before {
     .error-message { font-size: 0.92rem; }
     .btn-error { padding: 11px 22px; font-size: 0.9rem; width: 100%; }
     .error-actions { flex-direction: column; }
+}
+
+
+/* Css da home*/
+
+   /* HERO FULLWIDTH */
+        .hero-fullwidth {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        /* CARROSSEL DE FUNDO */
+        .hero-bg-carousel {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .hero-bg-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transform: scale(1.08);
+            transition: opacity 1.2s ease, transform 6s ease;
+            pointer-events: none;
+        }
+        .hero-bg-slide.active {
+            opacity: 1;
+            transform: scale(1);
+            z-index: 1;
+        }
+        .hero-bg-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* OVERLAY — escurece ao centro para destacar o texto */
+        .hero-bg-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background:
+                radial-gradient(ellipse at center,
+                    rgba(10, 15, 30, 0.75) 0%,
+                    rgba(10, 15, 30, 0.65) 40%,
+                    rgba(10, 15, 30, 0.55) 100%);
+            pointer-events: none;
+        }
+
+        /* ============================================================
+           CONTEÚDO CENTRALIZADO
+        ============================================================ */
+        .hero-fullwidth-content {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            padding: 7rem 6%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .hero-center-wrapper {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        /* ============================================================
+           BADGE
+        ============================================================ */
+        .glass-badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ============================================================
+           TÍTULO
+        ============================================================ */
+        .hero-title {
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            line-height: 1.12;
+            color: #fff;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -1px;
+            text-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.5),
+                0 2px 6px rgba(0, 0, 0, 0.35);
+        }
+        .hero-gradient-text {
+            background: linear-gradient(135deg, #facc15, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        /* ============================================================
+           SUBTÍTULO — CENTRADO
+        ============================================================ */
+        .hero-subtitle-wrapper {
+            max-width: 720px;
+            padding: 0;
+            margin: 0;
+        }
+        .hero-subtitle {
+            font-size: clamp(1rem, 1.3vw, 1.18rem);
+            color: #ffffff !important;
+            line-height: 1.75;
+            margin: 0;
+            font-weight: 400;
+            letter-spacing: 0.15px;
+            text-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.6),
+                0 1px 3px rgba(0, 0, 0, 0.4);
+            opacity: 0.95;
+        }
+
+        /* ============================================================
+           BOTÃO DE VIDRO
+        ============================================================ */
+        .explorar-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
+            color: #fff;
+        }
+
+        /* ============================================================
+           CARDS FLUTUANTES — EM LINHA, CENTRADOS
+        ============================================================ */
+        .hero-floating-cards {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+        .floating-glass-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 22px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow:
+                0 10px 32px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            color: #fff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-width: 220px;
+            text-align: left;
+        }
+        .floating-glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 16px 40px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        .floating-glass-card h5 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+        .floating-glass-card p {
+            font-size: 0.75rem;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+        }
+        .floating-glass-card .icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           DOTS
+        ============================================================ */
+        .hero-dots {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 4;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
+        }
+        .hero-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .hero-dot.active {
+            width: 22px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+        }
+
+        /* ============================================================
+           RESPONSIVO
+        ============================================================ */
+        @media (max-width: 992px) {
+            .hero-fullwidth-content {
+                padding: 6rem 5%;
+            }
+            .hero-center-wrapper {
+                gap: 1.25rem;
+            }
+            .hero-floating-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+            .floating-glass-card {
+                width: 100%;
+                max-width: 360px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-fullwidth-content {
+                padding: 5rem 5%;
+            }
+            .hero-title {
+                letter-spacing: -0.5px;
+            }
+            .hero-subtitle {
+                font-size: 0.95rem;
+                line-height: 1.65;
+            }
+            .glass-badge {
+                font-size: 0.75rem;
+                padding: 6px 14px;
+            }
+            .hero-dot { width: 6px; height: 6px; }
+            .hero-dot.active { width: 18px; }
+            .hero-dots {
+                gap: 4px;
+                padding: 6px 10px;
+                bottom: 20px;
+            }
+        }
+
+        /* ============================================================
+           ESTATÍSTICAS — GRID EQUILIBRADO (4 CARDS)
+        ============================================================ */
+        .quick-stats {
+            padding: 4rem 6% !important;
+            background: var(--surface);
+        }
+
+        .stats-grid-user {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: stretch;
+        }
+
+        /* Tablet: 2 por linha */
+        @media (max-width: 992px) {
+            .stats-grid-user {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+        }
+
+        /* Mobile: 1 por linha */
+        @media (max-width: 576px) {
+            .stats-grid-user {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        /* Menu mobile — fundo escuro visível em vez de branco */
+#navLinks {
+    background: #0a0f1e;
+}
+
+#navLinks .nav-link {
+    color: #ffffff;
+}
+
+#navLinks .nav-link:hover,
+#navLinks .nav-link.active {
+    color: #facc15;
+}
+
+/* Tablets*/
+
+@media (max-width: 992px) {
+    .footer-main-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+    .footer-brand p {
+        max-width: 100%;
+    }
+}
+
+/* ============================================================
+   REMOVER AUTOFILL AZUL E ÍCONES DO BROWSER
+   ============================================================ */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #faf9f5 inset !important;
+    box-shadow: 0 0 0 1000px #faf9f5 inset !important;
+    -webkit-text-fill-color: #1a1a1a !important;
+    color: #1a1a1a !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+    caret-color: #1a1a1a !important;
+}
+
+input:autofill,
+input:-moz-autofill {
+    background: #faf9f5 !important;
+    color: #1a1a1a !important;
+    box-shadow: 0 0 0 1000px #faf9f5 inset !important;
+}
+
+/* Esconde só os ÍCONES de autofill (NÃO o contentor do texto) */
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-strong-password-auto-fill-button,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-caps-lock-indicator {
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+}
+
+/* Inputs numéricos: remove as setas e garante que o texto aparece */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+/* ============================================================
+   DASHBOARD EMPRESA — Cards com cores UniLuanda
+   Paleta: Preto #0a0a0a + Dourado #c9a227 + Verde + Laranja
+============================================================ */
+
+/* ---------- Div interna dos cards — SEM fundo (transparente) ---------- */
+.stat-card .stat-card-content {
+    background: transparent !important;
+    position: relative;
+    z-index: 1;
+    flex-grow: 1;
+    min-width: 0;
+    color: inherit;
+}
+
+/* ============================================================
+   CARD 1 — Oportunidades (Preto institucional + ícone dourado)
+============================================================ */
+.stat-card.stat-card-primary {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(201, 162, 39, 0.15);
+}
+
+.stat-card.stat-card-primary .stat-card-value,
+.stat-card.stat-card-primary .stat-card-label,
+.stat-card.stat-card-primary .stat-card-desc,
+.stat-card.stat-card-primary .stat-card-content {
+    color: #ffffff !important;
+}
+
+.stat-card.stat-card-primary .stat-card-icon {
+    background: rgba(201, 162, 39, 0.15) !important;
+    color: #c9a227 !important;
+    border: 1px solid rgba(201, 162, 39, 0.3);
+}
+
+/* ============================================================
+   CARD 2 — Candidaturas (Verde institucional)
+============================================================ */
+.stat-card.stat-card-success {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 100%) !important;
+    color: #ffffff !important;
+}
+
+.stat-card.stat-card-success .stat-card-value,
+.stat-card.stat-card-success .stat-card-label,
+.stat-card.stat-card-success .stat-card-desc,
+.stat-card.stat-card-success .stat-card-content {
+    color: #ffffff !important;
+}
+
+.stat-card.stat-card-success .stat-card-icon {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================================
+   CARD 3 — Pendentes (Laranja / Âmbar)
+============================================================ */
+.stat-card.stat-card-warning {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 100%) !important;
+    color: #ffffff !important;
+}
+
+.stat-card.stat-card-warning .stat-card-value,
+.stat-card.stat-card-warning .stat-card-label,
+.stat-card.stat-card-warning .stat-card-desc,
+.stat-card.stat-card-warning .stat-card-content {
+    color: #ffffff !important;
+}
+
+.stat-card.stat-card-warning .stat-card-icon {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================================
+   CARD 4 — Aprovadas (Dourado UniLuanda + texto branco)
+============================================================ */
+.stat-card.stat-card-gold {
+    background: linear-gradient(135deg, #a67c00 0%, #c9a227 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(201, 162, 39, 0.5);
+}
+
+.stat-card.stat-card-gold .stat-card-value,
+.stat-card.stat-card-gold .stat-card-label,
+.stat-card.stat-card-gold .stat-card-desc,
+.stat-card.stat-card-gold .stat-card-content {
+    color: #ffffff !important;
+}
+
+.stat-card.stat-card-gold .stat-card-icon {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================
+   Efeito hover subtil para os 4 cards
+============================================================ */
+.stat-card.stat-card-primary:hover,
+.stat-card.stat-card-success:hover,
+.stat-card.stat-card-warning:hover,
+.stat-card.stat-card-gold:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(10, 10, 10, 0.3);
+}
+
+
+/* ============================================================
+   FOOTER UNIFICADO DOS PAINÉIS
+============================================================ */
+.painel-footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border-color);
+    padding: 12px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.painel-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ---------- Lado esquerdo ---------- */
+.painel-footer-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+    min-width: 0;
+}
+
+.painel-footer-logo {
+    height: 20px;
+    width: 20px;
+    object-fit: contain;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.painel-footer-text {
+    color: var(--text-muted);
+}
+
+.painel-footer-text strong {
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+.painel-footer-sep {
+    color: var(--text-soft);
+    margin: 0 4px;
+    opacity: 0.6;
+}
+
+/* ---------- Lado direito ---------- */
+.painel-footer-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+
+.painel-footer-version {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.painel-footer-version i {
+    font-size: 0.62rem;
+}
+
+.painel-footer-sep-dot {
+    color: var(--text-soft);
+    opacity: 0.5;
+}
+
+.painel-footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.78rem;
+    transition: color 0.2s ease;
+}
+
+.painel-footer-link:hover {
+    color: var(--primary-dark);
+    text-decoration: none;
+}
+
+.painel-footer-link i {
+    font-size: 0.72rem;
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 768px) {
+    .painel-footer {
+        padding: 10px 0;
+    }
+
+    .painel-footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 6px;
+    }
+
+    .painel-footer-left {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .painel-footer-text {
+        font-size: 0.75rem;
+    }
+
+    .painel-footer-logo {
+        height: 18px;
+        width: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .painel-footer-text {
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .painel-footer-version {
+        font-size: 0.62rem;
+        padding: 2px 8px;
+    }
+}
+
+
+/* ============================================================
+   CHATBOT FLUTUANTE — Cores UniLuanda (override)
+   Substitui as cores Bootstrap azuis pela paleta institucional
+   Preto: #0a0a0a | Dourado: #c9a227 | Dourado escuro: #a67c00
+============================================================ */
+
+/* ---------- 1. Botão flutuante (abre o chat) ---------- */
+.chatbot-toggle,
+.chatbot-btn-toggle,
+[id^="chatbot"] button,
+[id*="chatbot-toggle"] {
+    background: linear-gradient(135deg, #a67c00 0%, #c9a227 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(201, 162, 39, 0.6) !important;
+    box-shadow: 0 8px 24px rgba(201, 162, 39, 0.45) !important;
+    transition: all 0.3s ease !important;
+}
+
+.chatbot-toggle:hover,
+.chatbot-btn-toggle:hover {
+    background: linear-gradient(135deg, #c9a227 0%, #e0b93d 100%) !important;
+    transform: translateY(-3px) scale(1.05) !important;
+    box-shadow: 0 12px 32px rgba(201, 162, 39, 0.6) !important;
+}
+
+/* ---------- 2. Header do chat ---------- */
+.chatbot-header,
+.chatbot-window .chatbot-header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid #c9a227 !important;
+}
+
+/* ---------- 3. Avatar do bot ---------- */
+.chatbot-header .avatar,
+.chatbot-avatar {
+    background: #c9a227 !important;
+    color: #0a0a0a !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ---------- 4. Mensagens do BOT ---------- */
+.chatbot-message.bot,
+.chatbot-message.received,
+.chatbot-body .message-bot {
+    background: #fbf6e3 !important;
+    color: #1a1a1a !important;
+    border: 1px solid #f5e9bd !important;
+    border-left: 3px solid #c9a227 !important;
+}
+
+/* ---------- 5. Mensagens do USER ---------- */
+.chatbot-message.user,
+.chatbot-message.sent,
+.chatbot-body .message-user {
+    background: linear-gradient(135deg, #0a0a0a 0%, #262626 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(201, 162, 39, 0.3) !important;
+    border-right: 3px solid #c9a227 !important;
+}
+
+/* ---------- 6. Input do chat ---------- */
+.chatbot-input,
+.chatbot-footer input,
+.chatbot-footer textarea {
+    border: 2px solid #e6e2d3 !important;
+    background: #faf9f5 !important;
+    color: #1a1a1a !important;
+    transition: all 0.2s ease !important;
+}
+
+.chatbot-input:focus,
+.chatbot-footer input:focus,
+.chatbot-footer textarea:focus {
+    border-color: #c9a227 !important;
+    box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.2) !important;
+    background: #ffffff !important;
+    outline: none !important;
+}
+
+.chatbot-input::placeholder,
+.chatbot-footer input::placeholder {
+    color: #8a8f98 !important;
+}
+
+/* ---------- 7. Botão enviar ---------- */
+.chatbot-send,
+.chatbot-footer .send-btn,
+.chatbot-footer button[type="submit"] {
+    background: linear-gradient(135deg, #a67c00 0%, #c9a227 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    transition: all 0.25s ease !important;
+}
+
+.chatbot-send:hover,
+.chatbot-footer .send-btn:hover {
+    background: linear-gradient(135deg, #c9a227 0%, #e0b93d 100%) !important;
+    transform: scale(1.08) !important;
+    box-shadow: 0 6px 16px rgba(201, 162, 39, 0.5) !important;
+}
+
+/* ---------- 8. Badge de notificação (bolinha vermelha) ---------- */
+.chatbot-badge,
+.chatbot-notif,
+.chatbot-toggle .badge {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+}
+
+/* ---------- 9. Sugestões / quick replies ---------- */
+.chatbot-suggestion,
+.chatbot-quick-reply,
+.chatbot-suggestions button {
+    border: 1.5px solid #c9a227 !important;
+    background: #fbf6e3 !important;
+    color: #a67c00 !important;
+    transition: all 0.2s ease !important;
+}
+
+.chatbot-suggestion:hover,
+.chatbot-quick-reply:hover,
+.chatbot-suggestions button:hover {
+    background: #c9a227 !important;
+    color: #0a0a0a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.35) !important;
+}
+
+/* ---------- 10. Janela do chat (moldura) ---------- */
+.chatbot-window {
+    border: 1px solid #e6e2d3 !important;
+    box-shadow:
+        0 20px 40px rgba(10, 10, 10, 0.15),
+        0 0 0 1px rgba(201, 162, 39, 0.1) !important;
+    border-radius: 16px !important;
+}
+
+/* ---------- 11. Botão fechar ---------- */
+.chatbot-close,
+.chatbot-header .btn-close {
+    color: #ffffff !important;
+    opacity: 0.85 !important;
+    transition: all 0.2s ease !important;
+}
+
+.chatbot-close:hover,
+.chatbot-header .btn-close:hover {
+    color: #c9a227 !important;
+    opacity: 1 !important;
+    transform: rotate(90deg) !important;
+}
+
+/* ---------- 12. Scrollbar do chat ---------- */
+.chatbot-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatbot-body::-webkit-scrollbar-track {
+    background: #f5f4ef;
+    border-radius: 10px;
+}
+
+.chatbot-body::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 10px;
+}
+
+.chatbot-body::-webkit-scrollbar-thumb:hover {
+    background: #c9a227;
+}
+
+/* ============================================================
+   PAGINAÇÃO — estilo UniLuanda
+============================================================ */
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagination .page-item {
+    display: inline-block;
+    margin: 0;
+}
+
+.pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #e6e2d3;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #525252;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.pagination .page-link i {
+    font-size: 0.75rem;
+}
+
+.pagination .page-link:hover {
+    background: #fbf6e3;
+    border-color: #c9a227;
+    color: #a67c00;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(201, 162, 39, 0.15);
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #a67c00 0%, #c9a227 55%, #e0b93d 100%);
+    border-color: #c9a227;
+    color: #0a0a0a;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.35);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #faf9f5;
+    border-color: #e8e6df;
+    color: #a3a3a3;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 576px) {
+    .pagination .page-link {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 10px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+}
+
+/* ============================================================
+   STATS CARDS — números em branco para contraste
+============================================================ */
+.stats-card .stats-value {
+    color: #ffffff !important;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card .stats-label,
+.stats-card .stats-footer {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.stats-card .stats-icon {
+    color: #ffffff !important;
+}
+
+/* ============================================================
+   CORREÇÃO DO NOME DO AUTOR (não deve ser afetado)
+============================================================ */
+.post-card .card-header strong {
+    color: #0a0a0a;
+}
+
+.post-card .card-header .text-muted {
+    color: #6b7280 !important;
 }
 
