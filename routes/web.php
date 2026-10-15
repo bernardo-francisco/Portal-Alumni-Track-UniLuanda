@@ -733,7 +733,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/relatorios/pdf/pesquisas',       [RelatorioController::class, 'pdfPesquisas'])       ->name('relatorios.pdf.pesquisas');
         Route::get('/relatorios/pdf/mural',           [RelatorioController::class, 'pdfMural'])           ->name('relatorios.pdf.mural');
         Route::get('/relatorios/pdf/mapa',            [RelatorioController::class, 'pdfMapa'])            ->name('relatorios.pdf.mapa');
-
+        Route::get('/relatorios/pdf/auditoria',    [RelatorioController::class, 'pdfAuditoria'])->name('relatorios.pdf.auditoria');
         // ========================================================
         // 📊 RELATÓRIOS EXCEL
         // ========================================================
@@ -760,7 +760,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/relatorios/excel/pesquisas',       [RelatorioController::class, 'excelPesquisas'])       ->name('relatorios.excel.pesquisas');
         Route::get('/relatorios/excel/mural',           [RelatorioController::class, 'excelMural'])           ->name('relatorios.excel.mural');
         Route::get('/relatorios/excel/mapa',            [RelatorioController::class, 'excelMapa'])            ->name('relatorios.excel.mapa');
-
+        Route::get('/relatorios/excel/auditoria',  [RelatorioController::class, 'excelAuditoria'])->name('relatorios.excel.auditoria');
         // Relatórios — Empresas ✅ NOVO
         Route::get('/relatorios/pdf/empresas', [RelatorioController::class, 'pdfEmpresas'])
             ->name('relatorios.pdf.empresas');

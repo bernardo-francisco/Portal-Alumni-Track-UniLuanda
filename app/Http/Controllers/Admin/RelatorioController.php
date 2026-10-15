@@ -23,6 +23,8 @@ use App\Models\PesquisaPergunta;
 use App\Models\PesquisaResposta;
 use App\Models\MuralNoticia;
 use App\Models\Empresa;
+use App\Models\AuditLog;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -53,7 +55,7 @@ class RelatorioController extends Controller
         $taxaEmpregabilidade = $totalEgressos > 0 ? round(($empregados / $totalEgressos) * 100, 2) : 0;
 
         // ============================================================
-        // EMPRESAS ✅ NOVO
+        // EMPRESAS
         // ============================================================
         $totalEmpresas = Empresa::count();
 
@@ -106,14 +108,9 @@ class RelatorioController extends Controller
         });
 
         // ============================================================
-        // ÁREAS DE ATUAÇÃO
+        // ✅ ÁREAS DE ATUAÇÃO — Híbrida (profissionais + egressos)
         // ============================================================
-        $areasAtuacao = Egresso::whereNotNull('area_atuacao')
-            ->whereHas('user', fn($q) => $q->where('is_admin', false))
-            ->select('area_atuacao', DB::raw('count(*) as total'))
-            ->groupBy('area_atuacao')
-            ->orderBy('total', 'desc')
-            ->get();
+        $areasAtuacao = $this->calcularAreasAtuacao();
 
         // ============================================================
         // TOP EMPRESAS
@@ -140,6 +137,66 @@ class RelatorioController extends Controller
             'taxaAprovacaoEmpresas',
             'topEmpresas'
         ));
+    }
+
+    /**
+     * ============================================================
+     * Áreas de Atuação — Lógica Híbrida
+     * ============================================================
+     *
+     * 1. Prioridade: profissionais.sector (emprego atual)
+     * 2. Fallback: egressos.area_atuacao (manual)
+     * 3. Nunca duplica: cada egresso conta 1 vez
+     * ============================================================
+     */
+    private function calcularAreasAtuacao()
+    {
+        // --------------------------------------------------------
+        // 1. Egressos que têm profissionais.sector
+        // --------------------------------------------------------
+        $comProfissional = Profissional::whereNotNull('sector')
+            ->where('sector', '!=', '')
+            ->whereHas('egresso.user', fn($q) => $q->where('is_admin', false))
+            ->get()
+            ->groupBy('egresso_id')
+            ->map(function ($profs) {
+                // Priorizar o is_current = 1, senão o mais recente
+                $atual = $profs->firstWhere('is_current', 1)
+                      ?? $profs->sortByDesc('data_inicio')->first();
+
+                return [
+                    'egresso_id'   => $profs->first()->egresso_id,
+                    'area_atuacao' => $atual->sector,
+                    'fonte'        => 'profissional',
+                ];
+            });
+
+        // --------------------------------------------------------
+        // 2. Egressos com area_atuacao manual mas SEM profissionais.sector
+        // --------------------------------------------------------
+        $comAreaManual = Egresso::whereNotNull('area_atuacao')
+            ->where('area_atuacao', '!=', '')
+            ->whereHas('user', fn($q) => $q->where('is_admin', false))
+            ->whereNotIn('id', $comProfissional->pluck('egresso_id')->toArray())
+            ->get()
+            ->map(fn($e) => [
+                'egresso_id'   => $e->id,
+                'area_atuacao' => $e->area_atuacao,
+                'fonte'        => 'egresso',
+            ]);
+
+        // --------------------------------------------------------
+        // 3. Mesclar e agrupar por área
+        // --------------------------------------------------------
+        return $comProfissional
+            ->concat($comAreaManual)
+            ->groupBy('area_atuacao')
+            ->map(fn($grupo, $area) => (object) [
+                'area_atuacao' => $area,
+                'total'        => $grupo->count(),
+            ])
+            ->sortByDesc('total')
+            ->values();
     }
 
     // ================================================================
@@ -569,15 +626,16 @@ class RelatorioController extends Controller
             ->setPaper('a4', 'landscape')
             ->download('relatorio_completo_' . date('Y-m-d') . '.pdf');
     }
-public function excelCompleto()
-{
-    $dados = $this->dadosCompleto();
 
-    return Excel::download(
-        new \App\Exports\CompletoExport($dados),
-        'relatorio_completo_' . date('Y-m-d') . '.xlsx'
-    );
-}
+    public function excelCompleto()
+    {
+        $dados = $this->dadosCompleto();
+
+        return Excel::download(
+            new \App\Exports\CompletoExport($dados),
+            'relatorio_completo_' . date('Y-m-d') . '.xlsx'
+        );
+    }
 
     private function dadosCompleto(): array
     {
@@ -590,6 +648,9 @@ public function excelCompleto()
         $taxaEmpregabilidade = $totalEgressos > 0 ? round(($empregados / $totalEgressos) * 100, 2) : 0;
 
         $porUnidade = $this->dadosPorUnidade();
+
+        // ✅ ÁREAS DE ATUAÇÃO — Híbrida
+        $areasAtuacao = $this->calcularAreasAtuacao();
 
         $porStatus = Egresso::whereHas('user', fn($q) => $q->where('is_admin', false))
             ->select('status', DB::raw('count(*) as total'))
@@ -681,9 +742,33 @@ public function excelCompleto()
 
         $mapaBase64 = $this->gerarMapaBase64();
 
+        // ============================================================
+        // ✅ AUDITORIA
+        // ============================================================
+        $totalAuditoria    = AuditLog::count();
+        $auditoriaCriticas = AuditLog::where('severidade', 'critico')->count();
+        $auditoriaAvisos   = AuditLog::where('severidade', 'aviso')->count();
+        $auditoriaInfos    = AuditLog::where('severidade', 'info')->count();
+
+        $auditoriaRecentes = AuditLog::latest()
+            ->take(100)
+            ->get();
+
+        $auditoriaTopAdmins = AuditLog::select('admin_id', 'admin_nome', DB::raw('count(*) as total'))
+            ->groupBy('admin_id', 'admin_nome')
+            ->orderByDesc('total')
+            ->take(10)
+            ->get();
+
+        $auditoriaTopAcoes = AuditLog::select('acao', DB::raw('count(*) as total'))
+            ->groupBy('acao')
+            ->orderByDesc('total')
+            ->take(10)
+            ->get();
+
         return compact(
             'totalEgressos', 'empregados', 'taxaEmpregabilidade', 'totalPaises',
-            'porUnidade', 'porStatus', 'porTipoEmprego', 'porPais', 'porCurso',
+            'porUnidade', 'areasAtuacao', 'porStatus', 'porTipoEmprego', 'porPais', 'porCurso',
             'totalOportunidades', 'oportunidadesAtivas', 'oportunidadesExpiradas',
             'totalCandidaturas', 'candidaturasPendentes', 'candidaturasAprovadas', 'candidaturasRejeitadas',
             'candidaturasRecentes', 'topOportunidades',
@@ -696,7 +781,11 @@ public function excelCompleto()
             'totalNotificacoes', 'notificacoesLidas', 'notificacoesRecentes',
             'totalFeedbacks', 'feedbacksAprovados', 'feedbacksRecentes',
             'totalServicos', 'servicosAtendidos', 'servicosRecentes',
-            'totalProfissionais', 'egressosRecentes', 'egressos', 'mapaBase64'
+            'totalProfissionais', 'egressosRecentes', 'egressos', 'mapaBase64',
+
+            // ✅ NOVO — Auditoria
+            'totalAuditoria', 'auditoriaCriticas', 'auditoriaAvisos', 'auditoriaInfos',
+            'auditoriaRecentes', 'auditoriaTopAdmins', 'auditoriaTopAcoes',
         );
     }
 
@@ -1489,93 +1578,171 @@ public function excelCompleto()
     }
 
     // ================================================================
-// 24. EMPRESAS
-// ================================================================
-public function pdfEmpresas()
-{
-    $dados = $this->dadosEmpresas();
+    // 24. EMPRESAS
+    // ================================================================
+    public function pdfEmpresas()
+    {
+        $dados = $this->dadosEmpresas();
 
-    return Pdf::loadView('admin.relatorios.pdf.empresas', $dados)
-        ->setOption('isPhpEnabled', true)
-        ->setOption('isRemoteEnabled', true)
-        ->setPaper('a4', 'landscape')
-        ->download('relatorio_empresas_' . date('Y-m-d') . '.pdf');
-}
+        return Pdf::loadView('admin.relatorios.pdf.empresas', $dados)
+            ->setOption('isPhpEnabled', true)
+            ->setOption('isRemoteEnabled', true)
+            ->setPaper('a4', 'landscape')
+            ->download('relatorio_empresas_' . date('Y-m-d') . '.pdf');
+    }
 
-public function excelEmpresas()
-{
-    $empresas = \App\Models\Empresa::with('user')
-        ->orderByDesc('created_at')
-        ->get();
+    public function excelEmpresas()
+    {
+        $empresas = Empresa::with('user')
+            ->orderByDesc('created_at')
+            ->get();
 
-    $headers = [
-        'Nome', 'NIF', 'Email', 'Telefone', 'Sector', 'Localização',
-        'Província', 'Tipo', 'Status Validação', 'Data Validação', 'Registada em',
-    ];
+        $headers = [
+            'Nome', 'NIF', 'Email', 'Telefone', 'Sector', 'Localização',
+            'Província', 'Tipo', 'Status Validação', 'Data Validação', 'Registada em',
+        ];
 
-    $rows = $empresas->map(fn($e) => [
-        $e->nome ?? '',
-        $e->nif ?? '',
-        $e->email ?? '',
-        $e->telefone ?? '',
-        $e->sector ?? '',
-        $e->localizacao ?? '',
-        $e->provincia ?? '',
-        $e->tipo ?? '',
-        $e->status_validacao ?? '',
-        $e->data_validacao ? $e->data_validacao->format('d/m/Y H:i') : '',
-        $e->created_at ? $e->created_at->format('d/m/Y H:i') : '',
-    ])->toArray();
+        $rows = $empresas->map(fn($e) => [
+            $e->nome ?? '',
+            $e->nif ?? '',
+            $e->email ?? '',
+            $e->telefone ?? '',
+            $e->sector ?? '',
+            $e->localizacao ?? '',
+            $e->provincia ?? '',
+            $e->tipo ?? '',
+            $e->status_validacao ?? '',
+            $e->data_validacao ? $e->data_validacao->format('d/m/Y H:i') : '',
+            $e->created_at ? $e->created_at->format('d/m/Y H:i') : '',
+        ])->toArray();
 
-    return $this->excelDownload('relatorio_empresas', $headers, $rows, 'Empresas');
-}
+        return $this->excelDownload('relatorio_empresas', $headers, $rows, 'Empresas');
+    }
 
-private function dadosEmpresas(): array
-{
-    $empresas = \App\Models\Empresa::with('user')
-        ->withCount(['oportunidades'])
-        ->orderByDesc('created_at')
-        ->get()
-        ->map(function ($empresa) {
-            // Total de candidaturas desta empresa
-            $empresa->total_candidaturas = \App\Models\Candidatura::whereIn(
-                'oportunidade_id',
-                \App\Models\Oportunidade::where('empresa_id', $empresa->id)->pluck('id')
-            )->count();
+    private function dadosEmpresas(): array
+    {
+        $empresas = Empresa::with('user')
+            ->withCount(['oportunidades'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($empresa) {
+                $empresa->total_candidaturas = Candidatura::whereIn(
+                    'oportunidade_id',
+                    Oportunidade::where('empresa_id', $empresa->id)->pluck('id')
+                )->count();
 
-            return $empresa;
-        });
+                return $empresa;
+            });
 
-    $totalEmpresas    = $empresas->count();
-    $aprovadas        = $empresas->where('status_validacao', 'aprovado')->count();
-    $pendentes        = $empresas->where('status_validacao', 'pendente')->count();
-    $reprovadas       = $empresas->where('status_validacao', 'reprovado')->count();
+        $totalEmpresas    = $empresas->count();
+        $aprovadas        = $empresas->where('status_validacao', 'aprovado')->count();
+        $pendentes        = $empresas->where('status_validacao', 'pendente')->count();
+        $reprovadas       = $empresas->where('status_validacao', 'reprovado')->count();
 
-    $taxaAprovacao = $totalEmpresas > 0
-        ? round(($aprovadas / $totalEmpresas) * 100, 1)
-        : 0;
+        $taxaAprovacao = $totalEmpresas > 0
+            ? round(($aprovadas / $totalEmpresas) * 100, 1)
+            : 0;
 
-    // Distribuição por sector
-    $porSector = $empresas->groupBy('sector')
-        ->map(fn($g) => $g->count())
-        ->sortDesc();
+        $porSector = $empresas->groupBy('sector')
+            ->map(fn($g) => $g->count())
+            ->sortDesc();
 
-    // Distribuição por província
-    $porProvincia = $empresas->whereNotNull('provincia')
-        ->groupBy('provincia')
-        ->map(fn($g) => $g->count())
-        ->sortDesc();
+        $porProvincia = $empresas->whereNotNull('provincia')
+            ->groupBy('provincia')
+            ->map(fn($g) => $g->count())
+            ->sortDesc();
 
-    // Top 10 empresas com mais oportunidades
-    $topEmpresas = $empresas->sortByDesc('oportunidades_count')->take(10);
+        $topEmpresas = $empresas->sortByDesc('oportunidades_count')->take(10);
 
-    // Empresas recentes (últimos 30 dias)
-    $empresasRecentes = \App\Models\Empresa::where('created_at', '>=', now()->subDays(30))->count();
+        $empresasRecentes = Empresa::where('created_at', '>=', now()->subDays(30))->count();
 
-    return compact(
-        'empresas', 'totalEmpresas', 'aprovadas', 'pendentes', 'reprovadas',
-        'taxaAprovacao', 'porSector', 'porProvincia',
-        'topEmpresas', 'empresasRecentes'
-    );
-}
+        return compact(
+            'empresas', 'totalEmpresas', 'aprovadas', 'pendentes', 'reprovadas',
+            'taxaAprovacao', 'porSector', 'porProvincia',
+            'topEmpresas', 'empresasRecentes'
+        );
+    }
+
+    // ================================================================
+    // 25. AUDITORIA
+    // ================================================================
+    public function pdfAuditoria(Request $request)
+    {
+        $dados = $this->dadosAuditoria($request);
+
+        return Pdf::loadView('admin.relatorios.pdf.auditoria', $dados)
+            ->setOption('isPhpEnabled', true)
+            ->setOption('isRemoteEnabled', true)
+            ->setPaper('a4', 'landscape')
+            ->download('relatorio_auditoria_' . date('Y-m-d') . '.pdf');
+    }
+
+    public function excelAuditoria(Request $request)
+    {
+        $logs = $this->queryAuditoria($request)->orderByDesc('created_at')->get();
+
+        $headers = [
+            'Data', 'Admin', 'Email', 'Unidade', 'Acção',
+            'Alvo', 'Alvo ID', 'Descrição', 'Severidade', 'IP',
+        ];
+
+        $rows = $logs->map(fn($l) => [
+            $l->created_at->format('d/m/Y H:i:s'),
+            $l->admin_nome ?? '—',
+            $l->admin_email ?? '—',
+            $l->admin_unidade_sigla ?? '—',
+            $l->acao,
+            $l->alvo_tipo ?? '—',
+            $l->alvo_id ?? '—',
+            Str::limit($l->descricao ?? '', 100),
+            ucfirst($l->severidade),
+            $l->ip ?? '—',
+        ])->toArray();
+
+        return $this->excelDownload('relatorio_auditoria', $headers, $rows, 'Auditoria');
+    }
+
+    private function dadosAuditoria(Request $request): array
+    {
+        $logs = $this->queryAuditoria($request)
+            ->orderByDesc('created_at')
+            ->limit(5000)
+            ->get();
+
+        $admins = Admin::orderBy('nome_completo')->get(['id', 'nome_completo']);
+
+        $totalCriticos = AuditLog::where('severidade', 'critico')->count();
+        $totalAvisos   = AuditLog::where('severidade', 'aviso')->count();
+        $totalInfos    = AuditLog::where('severidade', 'info')->count();
+
+        $totalAcoes = AuditLog::count();
+
+        $topAdmins = AuditLog::select('admin_id', 'admin_nome', DB::raw('count(*) as total'))
+            ->groupBy('admin_id', 'admin_nome')
+            ->orderByDesc('total')
+            ->take(10)
+            ->get();
+
+        $topAcoes = AuditLog::select('acao', DB::raw('count(*) as total'))
+            ->groupBy('acao')
+            ->orderByDesc('total')
+            ->take(10)
+            ->get();
+
+        return compact(
+            'logs', 'admins',
+            'totalCriticos', 'totalAvisos', 'totalInfos', 'totalAcoes',
+            'topAdmins', 'topAcoes'
+        );
+    }
+
+    private function queryAuditoria(Request $request)
+    {
+        return AuditLog::query()
+            ->when($request->admin_id, fn($q, $v) => $q->where('admin_id', $v))
+            ->when($request->acao, fn($q, $v) => $q->where('acao', 'like', "%{$v}%"))
+            ->when($request->severidade, fn($q, $v) => $q->where('severidade', $v))
+            ->when($request->data_inicio, fn($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($request->data_fim, fn($q, $v) => $q->whereDate('created_at', '<=', $v));
+    }
 }

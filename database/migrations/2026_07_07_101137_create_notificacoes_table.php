@@ -10,9 +10,17 @@ return new class extends Migration
     {
         Schema::create('notificacoes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('egresso_id')->nullable()->constrained('egressos')->onDelete('cascade');
-            $table->foreignId('admin_id')->nullable()->constrained('admins')->onDelete('cascade');
-            $table->enum('tipo', ['curtida', 'comentario', 'conexao', 'oportunidade', 'mensagem', 'sistema', 'servico', 'feedback'])->default('sistema');
+
+            // ✅ SEM foreign key — a tabela `admins` ainda não existe nesta altura
+            // A FK é adicionada em 2026_09_03_164334_add_admin_id_to_notificacoes_table
+            $table->unsignedBigInteger('egresso_id')->nullable();
+            $table->unsignedBigInteger('admin_id')->nullable();
+
+            $table->enum('tipo', [
+                'curtida', 'comentario', 'conexao', 'oportunidade',
+                'mensagem', 'sistema', 'servico', 'feedback'
+            ])->default('sistema');
+
             $table->string('titulo', 100);
             $table->text('mensagem');
             $table->string('link', 255)->nullable();

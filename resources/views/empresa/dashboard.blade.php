@@ -5,21 +5,47 @@
 
 @section('content')
 
-{{-- CARDS DE ESTATÍSTICAS --}}
-<div class="row g-4 mb-4">
+<!-- ============================================================
+         CABEÇALHO
+         ============================================================ -->
+    <div class="row mb-4 fade-in">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <h1 class="h2 mb-1 fw-bold">Dashboard</h1>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        Visão geral do Painel da Empresa
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-primary-subtle text-primary p-2 px-3 rounded-pill">
+                        <i class="fas fa-calendar-day me-1"></i>
+                        {{ date('d/m/Y H:i') }}
+                    </span>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="row g-4 mb-4">
+{{-- ============================================================ --}}
+{{-- CARDS DE ESTATÍSTICAS                                        --}}
+{{-- ============================================================ --}}
+<div class="row g-3 mb-4">
 
     {{-- Card 1: Oportunidades --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-primary">
-            <div class="stat-card-body">
-                <div class="stat-card-content">
-                    <span class="stat-card-label">Oportunidades</span>
-                    <h3 class="stat-card-value">{{ $totalOportunidades ?? 0 }}</h3>
-                    <small class="stat-card-desc"><i class="fas fa-briefcase"></i> Total publicadas</small>
-                </div>
-                <div class="stat-card-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-card-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Oportunidades</span>
+                <h3 class="stat-card-value">{{ $totalOportunidades ?? 0 }}</h3>
+                <small class="stat-card-desc">
+                    <i class="fas fa-briefcase"></i> Total publicadas
+                </small>
             </div>
         </div>
     </div>
@@ -27,13 +53,15 @@
     {{-- Card 2: Candidaturas --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-success">
-            <div class="stat-card-body">
-                <div class="stat-card-content">
-                    <span class="stat-card-label">Candidaturas</span>
-                    <h3 class="stat-card-value">{{ $totalCandidaturas ?? 0 }}</h3>
-                    <small class="stat-card-desc"><i class="fas fa-file-signature"></i> Total recebidas</small>
-                </div>
-                <div class="stat-card-icon"><i class="fas fa-file-signature"></i></div>
+            <div class="stat-card-icon">
+                <i class="fas fa-file-signature"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Candidaturas</span>
+                <h3 class="stat-card-value">{{ $totalCandidaturas ?? 0 }}</h3>
+                <small class="stat-card-desc">
+                    <i class="fas fa-file-signature"></i> Total recebidas
+                </small>
             </div>
         </div>
     </div>
@@ -41,13 +69,15 @@
     {{-- Card 3: Pendentes --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-warning">
-            <div class="stat-card-body">
-                <div class="stat-card-content">
-                    <span class="stat-card-label">Pendentes</span>
-                    <h3 class="stat-card-value">{{ $candidaturasPendentes ?? 0 }}</h3>
-                    <small class="stat-card-desc"><i class="fas fa-clock"></i> Aguardam análise</small>
-                </div>
-                <div class="stat-card-icon"><i class="fas fa-hourglass-half"></i></div>
+            <div class="stat-card-icon">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Pendentes</span>
+                <h3 class="stat-card-value">{{ $candidaturasPendentes ?? 0 }}</h3>
+                <small class="stat-card-desc">
+                    <i class="fas fa-clock"></i> Aguardam análise
+                </small>
             </div>
         </div>
     </div>
@@ -55,23 +85,27 @@
     {{-- Card 4: Aprovadas --}}
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stat-card stat-card-gold">
-            <div class="stat-card-body">
-                <div class="stat-card-content">
-                    <span class="stat-card-label">Aprovadas</span>
-                    <h3 class="stat-card-value">{{ $candidaturasAprovadas ?? 0 }}</h3>
-                    <small class="stat-card-desc"><i class="fas fa-user-check"></i> Candidatos aceites</small>
-                </div>
-                <div class="stat-card-icon"><i class="fas fa-user-check"></i></div>
+            <div class="stat-card-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Aprovadas</span>
+                <h3 class="stat-card-value">{{ $candidaturasAprovadas ?? 0 }}</h3>
+                <small class="stat-card-desc">
+                    <i class="fas fa-user-check"></i> Candidatos aceites
+                </small>
             </div>
         </div>
     </div>
 
 </div>
-</div>
 
-{{-- GRÁFICOS --}}
-<div class="row g-4 mb-4">
+{{-- ============================================================ --}}
+{{-- GRÁFICOS                                                     --}}
+{{-- ============================================================ --}}
+<div class="row g-3 mb-4">
 
+    {{-- Gráfico: Status das Candidaturas --}}
     <div class="col-lg-6 col-xl-4">
         <div class="chart-card h-100">
             <div class="chart-card-header">
@@ -86,7 +120,7 @@
             <div class="chart-card-body">
                 <div class="chart-container">
                     <canvas id="graficoStatus"
-        data-dados="{{ json_encode($dadosStatus ?? []) }}"></canvas>
+                        data-dados="{{ json_encode($dadosStatus ?? []) }}"></canvas>
                 </div>
                 <div class="chart-footer">
                     <span class="chart-badge">
@@ -98,6 +132,7 @@
         </div>
     </div>
 
+    {{-- Gráfico: Oportunidades por Tipo --}}
     <div class="col-lg-6 col-xl-4">
         <div class="chart-card h-100">
             <div class="chart-card-header">
@@ -112,7 +147,7 @@
             <div class="chart-card-body">
                 <div class="chart-container">
                     <canvas id="graficoTipos"
-        data-dados="{{ json_encode($dadosTipos ?? []) }}"></canvas>
+                        data-dados="{{ json_encode($dadosTipos ?? []) }}"></canvas>
                 </div>
                 <div class="chart-footer">
                     <span class="chart-badge">
@@ -124,6 +159,7 @@
         </div>
     </div>
 
+    {{-- Gráfico: Taxa de Aprovação --}}
     <div class="col-lg-12 col-xl-4">
         <div class="chart-card h-100">
             <div class="chart-card-header">
@@ -138,10 +174,9 @@
             <div class="chart-card-body">
                 <div class="chart-container">
                     <canvas id="graficoAprovacao"
-        data-dados="{{ json_encode([
-            'aprovadas' => $candidaturasAprovadas ?? 0,
-            'total'     => $totalCandidaturas ?? 0,
-        ]) }}"></canvas>
+                        data-aprovadas="{{ $candidaturasAprovadas ?? 0 }}"
+                        data-total="{{ $totalCandidaturas ?? 0 }}"
+                        data-taxa="{{ $taxaAprovacao ?? 0 }}"></canvas>
                 </div>
                 <div class="chart-footer">
                     <span class="chart-badge chart-badge-success">
@@ -155,14 +190,18 @@
 
 </div>
 
-{{-- TABELAS --}}
-<div class="row g-4">
+{{-- ============================================================ --}}
+{{-- TABELAS                                                      --}}
+{{-- ============================================================ --}}
+<div class="row g-3">
 
     {{-- CANDIDATURAS RECENTES --}}
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-clock text-primary me-2"></i> Candidaturas Recentes</h6>
+                <h6 class="mb-0 fw-bold">
+                    <i class="fas fa-clock text-primary me-2"></i> Candidaturas Recentes
+                </h6>
                 <a href="{{ route('empresa.candidaturas.index') }}" class="btn btn-sm btn-outline-primary">
                     Ver todas <i class="fas fa-arrow-right ms-1"></i>
                 </a>
@@ -187,8 +226,12 @@
                                             'em_analise' => 'info',
                                             'entrevista' => 'primary',
                                             'aprovado'   => 'success',
+                                            'aprovada'   => 'success',
                                             'aceite'     => 'success',
+                                            'aceito'     => 'success',
                                             'rejeitado'  => 'danger',
+                                            'rejeitada'  => 'danger',
+                                            'recusado'   => 'danger',
                                         ];
                                         $cor = $coresStatus[$cand->status] ?? 'secondary';
                                     @endphp
@@ -203,13 +246,21 @@
                                                 </strong>
                                             </div>
                                         </td>
-                                        <td><span class="text-muted small">{{ $cand->oportunidade->titulo ?? '—' }}</span></td>
+                                        <td>
+                                            <span class="text-muted small">
+                                                {{ $cand->oportunidade->titulo ?? '—' }}
+                                            </span>
+                                        </td>
                                         <td>
                                             <span class="badge bg-{{ $cor }}-subtle text-{{ $cor }} border border-{{ $cor }}">
                                                 {{ ucfirst(str_replace('_', ' ', $cand->status)) }}
                                             </span>
                                         </td>
-                                        <td><small class="text-muted">{{ $cand->created_at->format('d/m/Y') }}</small></td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ $cand->created_at->format('d/m/Y') }}
+                                            </small>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -229,7 +280,9 @@
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-briefcase text-success me-2"></i> Minhas Oportunidades</h6>
+                <h6 class="mb-0 fw-bold">
+                    <i class="fas fa-briefcase text-success me-2"></i> Minhas Oportunidades
+                </h6>
                 <a href="{{ route('empresa.oportunidades.create') }}" class="btn btn-sm btn-primary">
                     <i class="fas fa-plus"></i> Nova
                 </a>
@@ -248,7 +301,8 @@
                                             <i class="fas fa-clock me-1"></i> {{ $op->created_at->diffForHumans() }}
                                         </small>
                                     </div>
-                                    <a href="{{ route('empresa.oportunidades.edit', $op->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('empresa.oportunidades.edit', $op->id) }}"
+                                       class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-pencil"></i>
                                     </a>
                                 </div>

@@ -1,42 +1,46 @@
 <?php
 
-namespace App\Mail;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use App\Models\Empresa;
-use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
-
-class EmpresaValidadaMail extends Mailable
+return new class extends Migration
 {
-    use Queueable, SerializesModels;
-
-    public function __construct(
-        public Empresa $empresa,
-        public bool $aprovada,
-        public ?string $motivo = null
-    ) {}
-
-    public function envelope(): Envelope
+    public function up(): void
     {
-        return new Envelope(
-            subject: $this->aprovada
-                ? '✅ A sua empresa foi aprovada — UniLuanda Alumni Track'
-                : '❌ A sua empresa não foi aprovada — UniLuanda Alumni Track',
-        );
+        if (!Schema::hasColumn('notificacoes', 'empresa_id')) {
+            Schema::table('notificacoes', function (Blueprint $table) {
+                $table->unsignedBigInteger('empresa_id')->nullable()->after('admin_id');
+                $table->index('empresa_id');
+            });
+        }
+
+        if (Schema::hasTable('empresas')) {
+            try {
+                Schema::table('notificacoes', function (Blueprint $table) {
+                    $table->foreign('empresa_id')
+                        ->references('id')
+                        ->on('empresas')
+                        ->onDelete('cascade');
+                });
+            } catch (\Exception $e) {
+                // FK já existe
+            }
+        }
     }
 
-    public function content(): Content
+    public function down(): void
     {
-        return new Content(
-            markdown: 'emails.empresa.validada',
-            with: [
-                'empresa'  => $this->empresa,
-                'aprovada' => $this->aprovada,
-                'motivo'   => $this->motivo,
-            ],
-        );
+        if (Schema::hasColumn('notificacoes', 'empresa_id')) {
+            try {
+                Schema::table('notificacoes', function (Blueprint $table) {
+                    $table->dropForeign(['empresa_id']);
+                });
+            } catch (\Exception $e) {}
+
+            Schema::table('notificacoes', function (Blueprint $table) {
+                $table->dropColumn('empresa_id');
+            });
+        }
     }
-}
+};

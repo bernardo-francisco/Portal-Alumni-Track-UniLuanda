@@ -41,124 +41,138 @@ class RegisterController extends Controller
     /**
      * Verificar se o número de processo existe na base de dados
      */
-   public function verificarNumeroProcesso(Request $request)
-{
-    $numeroProcesso = $request->input('numero_processo');
+    public function verificarNumeroProcesso(Request $request)
+    {
+        $numeroProcesso = $request->input('numero_processo');
 
-    if (empty($numeroProcesso)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Por favor, digite um número de processo.'
-        ]);
-    }
-
-    $egresso = Egresso::where('numero_processo', $numeroProcesso)->first();
-
-    // ============================================================
-    // CASO 1 — PROCESSO NÃO EXISTE NA BD
-    // Nível Prata — pendente para validação manual
-    // ============================================================
-    if (!$egresso) {
-        return response()->json([
-            'success'          => false,
-            'message'          => 'Número de processo não encontrado. Seu cadastro ficará pendente para validação manual.',
-            'sugerir_pendente' => true
-        ]);
-    }
-
-    // ============================================================
-    // CASO 2 — PROCESSO EXISTE E JÁ FOI REIVINDICADO
-    // O egresso já tem conta ativa
-    // ============================================================
-    if ($egresso->claimed_at !== null) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Este número de processo já tem uma conta ativa. Se é o titular, use "Recuperar password" no login.'
-        ]);
-    }
-
-    // ============================================================
-    // CASO 3 — PROCESSO EXISTE MAS AINDA NÃO FOI REIVINDICADO
-    // O egresso pode reivindicar a conta
-    // ============================================================
-
-    // Mascarar o nome para segurança (ex: "José M*** S****")
-    $nomeMascarado = $this->mascararNome($egresso->nome_completo);
-
-    return response()->json([
-        'success'        => true,
-        'reivindicavel'  => true,
-        'message'        => '✅ Encontrámos o seu registo! Confirme os dados para continuar.',
-
-        // Dados parciais — o suficiente para o egresso se reconhecer
-        'pre_preenchido' => [
-            'egresso_id'     => $egresso->id,
-            'nome_mascarado' => $nomeMascarado,
-            'curso'          => $egresso->curso->nome ?? null,
-            'unidade'        => $egresso->curso->unidade->sigla ?? null,
-            'ano_formatura'  => $egresso->ano_formatura,
-            'genero'         => $egresso->genero,
-        ],
-
-        // Dados completos para auto-preencher o form
-        // (só os que já existem na BD — os outros o egresso preenche)
-        'auto_preencher' => [
-            'nome_completo'    => $egresso->nome_completo,
-            'email'            => $egresso->email,           // pode ser null
-            'telefone'         => $egresso->telefone,        // pode ser null
-            'foto_url'         => $egresso->foto_url,        // pode ser null
-            'genero'           => $egresso->genero,
-            'data_nascimento'  => $egresso->data_nascimento?->format('Y-m-d'),
-            'curso_id'         => $egresso->curso_id,
-            'ano_formatura'    => $egresso->ano_formatura,
-        ],
-    ]);
-}
-
-/**
- * ============================================================
- * Mascarar nome para confirmação visual
- * ============================================================
- * "José Manuel Fernandes" → "José M*** F*******"
- */
-private function mascararNome(?string $nome): string
-{
-    if (empty($nome)) {
-        return '—';
-    }
-
-    $partes = preg_split('/\s+/', trim($nome));
-    $resultado = [];
-
-    foreach ($partes as $i => $parte) {
-        if ($i === 0) {
-            // Primeiro nome: manter completo
-            $resultado[] = $parte;
-        } else {
-            // Restantes: primeira letra + asteriscos
-            $letra = mb_substr($parte, 0, 1);
-            $resto = str_repeat('*', max(1, mb_strlen($parte) - 1));
-            $resultado[] = $letra . $resto;
+        if (empty($numeroProcesso)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Por favor, digite um número de processo.'
+            ]);
         }
+
+        $egresso = Egresso::where('numero_processo', $numeroProcesso)->first();
+
+        // ============================================================
+        // CASO 1 — PROCESSO NÃO EXISTE NA BD
+        // ============================================================
+        if (!$egresso) {
+            return response()->json([
+                'success'          => false,
+                'message'          => 'Número de processo não encontrado. Seu cadastro ficará pendente para validação manual.',
+                'sugerir_pendente' => true
+            ]);
+        }
+
+        // ============================================================
+        // CASO 2 — PROCESSO EXISTE E JÁ FOI REIVINDICADO
+        // ============================================================
+        if ($egresso->claimed_at !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este número de processo já tem uma conta ativa. Se é o titular, use "Recuperar password" no login.'
+            ]);
+        }
+
+        // ============================================================
+        // CASO 3 — PROCESSO EXISTE MAS AINDA NÃO FOI REIVINDICADO
+        // ============================================================
+
+        $nomeMascarado = $this->mascararNome($egresso->nome_completo);
+
+        return response()->json([
+            'success'        => true,
+            'reivindicavel'  => true,
+            'message'        => '✅ Encontrámos o seu registo! Confirme os dados para continuar.',
+
+            'pre_preenchido' => [
+                'egresso_id'      => $egresso->id,
+                'nome_mascarado'  => $nomeMascarado,
+                'email_mascarado' => $this->mascararEmail($egresso->email),
+                'curso'           => $egresso->curso->nome ?? null,
+                'unidade'         => $egresso->curso->unidade->sigla ?? null,
+                'ano_formatura'   => $egresso->ano_formatura,
+                'genero'          => $egresso->genero,
+            ],
+
+            'auto_preencher' => [
+                'nome_completo'    => $egresso->nome_completo,
+                'email'            => $egresso->email,
+                'telefone'         => $egresso->telefone,
+                'foto_url'         => $egresso->foto_url,
+                'genero'           => $egresso->genero,
+                'data_nascimento'  => $egresso->data_nascimento?->format('Y-m-d'),
+                'curso_id'         => $egresso->curso_id,
+                'ano_formatura'    => $egresso->ano_formatura,
+            ],
+        ]);
     }
 
-    return implode(' ', $resultado);
-}
+    /**
+     * ============================================================
+     * Mascarar nome para confirmação visual
+     * ============================================================
+     */
+    private function mascararNome(?string $nome): string
+    {
+        if (empty($nome)) {
+            return '—';
+        }
+
+        $partes = preg_split('/\s+/', trim($nome));
+        $resultado = [];
+
+        foreach ($partes as $i => $parte) {
+            if ($i === 0) {
+                $resultado[] = $parte;
+            } else {
+                $letra = mb_substr($parte, 0, 1);
+                $resto = str_repeat('*', max(1, mb_strlen($parte) - 1));
+                $resultado[] = $letra . $resto;
+            }
+        }
+
+        return implode(' ', $resultado);
+    }
+
+    /**
+     * ============================================================
+     * 🛡️ Mascarar email para confirmação visual
+     * ============================================================
+     */
+    private function mascararEmail(?string $email): string
+    {
+        if (empty($email)) {
+            return '—';
+        }
+
+        if (!str_contains($email, '@')) {
+            return str_repeat('*', mb_strlen($email));
+        }
+
+        [$local, $dominio] = explode('@', $email, 2);
+        $tamanhoLocal = mb_strlen($local);
+
+        if ($tamanhoLocal <= 2) {
+            $localMascarado = str_repeat('*', $tamanhoLocal);
+        } else {
+            $localMascarado = mb_substr($local, 0, 2) . str_repeat('*', max(1, $tamanhoLocal - 2));
+        }
+
+        return $localMascarado . '@' . $dominio;
+    }
 
     /**
      * ============================================================
      * ✅ FASE 1 — VALIDAÇÕES ANTI-BOT
      * ============================================================
-     * Verifica honeypot, time-check e padrões suspeitos.
-     * Retorna um array de erros (vazio = passou).
      */
     private function validarAntiBot(Request $request): array
     {
         $erros = [];
 
-        // -----------------------------------------------------------
-        // 1. HONEYPOT — campo invisível preenchido = bot
-        // -----------------------------------------------------------
+        // 1. HONEYPOT
         if (!empty($request->input('website_url'))) {
             Log::warning('🚨 Honeypot detectado (registo)', [
                 'ip'         => $request->ip(),
@@ -168,9 +182,7 @@ private function mascararNome(?string $nome): string
             $erros[] = 'honeypot';
         }
 
-        // -----------------------------------------------------------
-        // 2. TIME-CHECK — submissão demasiado rápida = bot
-        // -----------------------------------------------------------
+        // 2. TIME-CHECK
         $loadedAt = (int) $request->input('form_loaded_at', 0);
         $agora    = time();
 
@@ -183,7 +195,6 @@ private function mascararNome(?string $nome): string
             $erros[] = 'too_fast';
         }
 
-        // Timestamp no futuro (manipulação) → suspeito
         if ($loadedAt > $agora + 60) {
             Log::warning('🚨 Timestamp manipulado (registo)', [
                 'ip'    => $request->ip(),
@@ -192,19 +203,19 @@ private function mascararNome(?string $nome): string
             $erros[] = 'invalid_timestamp';
         }
 
-        // -----------------------------------------------------------
-        // 3. PADRÕES SUSPEITOS no nome / email
-        // -----------------------------------------------------------
-
-        // Nome com 5+ dígitos seguidos
+        // 3. PADRÕES SUSPEITOS
         $nome = (string) $request->input('nome_completo', '');
         if ($nome !== '' && preg_match('/\d{5,}/', $nome)) {
             $erros[] = 'suspicious_name';
         }
 
-        // Email com 25+ caracteres seguidos (típico de bots)
+        // 3.3 — EMAIL COM PARTE LOCAL MUITO LONGA (típico de bots)
         $email = (string) $request->input('email', '');
-        if (preg_match('/[a-z0-9]{25,}@/i', $email)) {
+        if (preg_match('/[a-z0-9]{40,}@/i', $email)) {
+            Log::warning('🚨 Email suspeito detectado (registo)', [
+                'ip'    => $request->ip(),
+                'email' => $email,
+            ]);
             $erros[] = 'suspicious_email';
         }
 
@@ -223,7 +234,6 @@ private function mascararNome(?string $nome): string
         $errosBot = $this->validarAntiBot($request);
 
         if (!empty($errosBot)) {
-            // Resposta genérica — não revelar qual foi o gatilho
             return back()
                 ->withInput()
                 ->with(
@@ -233,13 +243,29 @@ private function mascararNome(?string $nome): string
         }
 
         // ============================================================
+        // ✅ FASE 3 — DETETAR REIVINDICAÇÃO ANTES DA VALIDAÇÃO DE EMAIL
+        // ============================================================
+
+        $egressoParaReivindicar = null;
+
+        if ($request->tipo === 'egresso' && !empty($request->numero_processo)) {
+            $egressoParaReivindicar = Egresso::where('numero_processo', $request->numero_processo)->first();
+        }
+
+        $emailRule = 'unique:users,email';
+
+        if ($egressoParaReivindicar && $egressoParaReivindicar->user_id) {
+            $emailRule = 'unique:users,email,' . $egressoParaReivindicar->user_id;
+        }
+
+        // ============================================================
         // VALIDAÇÕES GERAIS
         // ============================================================
 
         $validated = $request->validate([
             'tipo' => 'required|in:admin,egresso,empresa',
             'nome_completo' => 'nullable|string|max:200',
-            'email' => 'required|email|unique:users,email|indisposable', // ✅ indisposable
+            'email' => 'required|email|' . $emailRule . '|indisposable',
             'telefone' => 'nullable|string|max:25',
             'password' => 'required|string|min:6|confirmed',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -282,10 +308,6 @@ private function mascararNome(?string $nome): string
         $statusValidacao = 'pendente';
         $isNivelOuro = false;
 
-        // ============================================================
-        // VALIDAÇÕES ESPECÍFICAS PARA EGRESSO
-        // ============================================================
-
         if ($request->tipo === 'egresso') {
 
             $request->validate([
@@ -298,10 +320,6 @@ private function mascararNome(?string $nome): string
                 'ano_formatura' => 'nullable|integer|min:1990|max:' . date('Y'),
             ]);
 
-            // ========================================================
-            // SE NÃO FORNECEU PROCESSO, CURSO E UNIDADE SÃO OBRIGATÓRIOS
-            // ========================================================
-
             if (empty($request->numero_processo)) {
                 $request->validate([
                     'curso_id' => 'required|exists:cursos,id',
@@ -309,9 +327,6 @@ private function mascararNome(?string $nome): string
                 ]);
             }
 
-            // ========================================================
-            // VERIFICAR NÚMERO DE PROCESSO
-            // ========================================================
             if (!empty($request->numero_processo)) {
 
                 $egressoExistente = Egresso::where(
@@ -319,25 +334,14 @@ private function mascararNome(?string $nome): string
                     $request->numero_processo
                 )->first();
 
-                // ====================================================
-                // PROCESSO NÃO EXISTE
-                // NÍVEL PRATA
-                // ====================================================
-
                 if (!$egressoExistente) {
-
                     $statusValidacao = 'pendente';
                     $isNivelOuro = false;
-
                 } else {
 
-                    // =================================================
-                    // PROCESSO EXISTE
-                    // NÍVEL OURO — o egresso pode reivindicar
-                    // =================================================
-
-                    // ✅ FASE 3 — Só bloqueia se JÁ foi reivindicado
-                    // (o admin pode ter criado o user, mas ninguém o reivindicou ainda)
+                    // ========================================================
+                    // 🛡️ BLOQUEIO 1 — Já reivindicado
+                    // ========================================================
                     if ($egressoExistente->claimed_at !== null) {
                         return back()
                             ->withInput()
@@ -347,17 +351,55 @@ private function mascararNome(?string $nome): string
                             );
                     }
 
+                    // ========================================================
+                    // 🛡️ BLOQUEIO 2 — Egresso sem email original
+                    // ========================================================
+                    $emailOriginal = strtolower(trim((string) $egressoExistente->email));
+
+                    if ($emailOriginal === '') {
+                        Log::warning('🚨 Reivindicação de egresso SEM email original', [
+                            'ip'              => $request->ip(),
+                            'numero_processo' => $request->numero_processo,
+                            'email_novo'      => $request->email,
+                            'user_agent'      => $request->userAgent(),
+                        ]);
+
+                        return back()
+                            ->withInput()
+                            ->with(
+                                'error',
+                                '⚠️ Este número de processo não tem email registado. Contacte a administração para reivindicar a conta.'
+                            );
+                    }
+
+                    // ========================================================
+                    // 🛡️ BLOQUEIO 3 — Email introduzido ≠ Email original
+                    // ========================================================
+                    $emailNovo = strtolower(trim((string) $request->email));
+
+                    if ($emailOriginal !== $emailNovo) {
+                        Log::warning('🚨 Tentativa de reivindicação com email DIFERENTE', [
+                            'ip'                => $request->ip(),
+                            'numero_processo'   => $request->numero_processo,
+                            'email_introduzido' => $request->email,
+                            'email_original'    => $egressoExistente->email,
+                            'user_agent'        => $request->userAgent(),
+                        ]);
+
+                        return back()
+                            ->withInput()
+                            ->with(
+                                'error',
+                                '❌ O email introduzido não corresponde ao email registado para este número de processo. ' .
+                                'Se é o titular, use o email original ou contacte a administração.'
+                            );
+                    }
+
                     $statusValidacao = 'aprovado';
                     $isNivelOuro = true;
                 }
 
             } else {
-
-                // ====================================================
-                // SEM PROCESSO
-                // NÍVEL PRATA
-                // ====================================================
-
                 $statusValidacao = 'pendente';
                 $isNivelOuro = false;
             }
@@ -372,7 +414,7 @@ private function mascararNome(?string $nome): string
             DB::beginTransaction();
 
             // ========================================================
-            // PROCESSAR FOTO (APENAS ADMIN E EGRESSO)
+            // PROCESSAR FOTO
             // ========================================================
 
             $fotoUrl = null;
@@ -385,9 +427,7 @@ private function mascararNome(?string $nome): string
 
                 $foto = $request->file('foto');
 
-                $tipoPasta = $request->tipo === 'admin'
-                    ? 'admins'
-                    : 'egressos';
+                $tipoPasta = $request->tipo === 'admin' ? 'admins' : 'egressos';
 
                 $nomeFoto =
                     $tipoPasta . '_' .
@@ -395,16 +435,9 @@ private function mascararNome(?string $nome): string
                     time() . '.' .
                     $foto->getClientOriginalExtension();
 
-                $foto->move(
-                    public_path('uploads/' . $tipoPasta),
-                    $nomeFoto
-                );
+                $foto->move(public_path('uploads/' . $tipoPasta), $nomeFoto);
 
-                $fotoUrl =
-                    'uploads/' .
-                    $tipoPasta .
-                    '/' .
-                    $nomeFoto;
+                $fotoUrl = 'uploads/' . $tipoPasta . '/' . $nomeFoto;
             }
 
             // ========================================================
@@ -427,354 +460,361 @@ private function mascararNome(?string $nome): string
                     time() . '.' .
                     $logo->getClientOriginalExtension();
 
-                $logo->move(
-                    public_path('uploads/empresas'),
-                    $nomeLogo
-                );
+                $logo->move(public_path('uploads/empresas'), $nomeLogo);
 
-                $logoUrl =
-                    'uploads/empresas/' .
-                    $nomeLogo;
+                $logoUrl = 'uploads/empresas/' . $nomeLogo;
             }
 
-                // ========================================================
-                // CRIAR USUÁRIO
-                // ========================================================
+            // ========================================================
+            // CRIAR USUÁRIO
+            // ========================================================
 
-                // Admin começa ativo
-                // Egresso e Empresa começam inativos (aguardam validação)
-                $isActive = $request->tipo === 'admin';
+            $isActive = $request->tipo === 'admin';
 
-                // Determinar o nome a guardar no User
-                $userName = $request->tipo === 'empresa'
-                    ? $request->empresa_nome
-                    : $request->nome_completo;
+            $userName = $request->tipo === 'empresa'
+                ? $request->empresa_nome
+                : $request->nome_completo;
 
-                // ✅ FASE 3 — Detetar fluxo de reivindicação
-                $isReivindicacao = (
-                    $request->tipo === 'egresso' &&
-                    $isNivelOuro &&
-                    $egressoExistente &&
-                    $egressoExistente->user
-                );
+            $isReivindicacao = (
+                $request->tipo === 'egresso' &&
+                $isNivelOuro &&
+                $egressoExistente &&
+                $egressoExistente->user
+            );
 
-                if ($isReivindicacao) {
-                    // Reivindicação: reutilizar o User existente (criado pelo admin)
-                    $user = $egressoExistente->user;
+            if ($isReivindicacao) {
+                $user = $egressoExistente->user;
 
-                    // Atualizar os dados do User existente
-                    $user->update([
-                        'name'              => $userName,
-                        'email'             => $request->email,
-                        'password'          => Hash::make($request->password),
-                        'phone'             => $request->telefone,
-                        'photo_url'         => $fotoUrl ?: $egressoExistente->foto_url,
-                        'is_active'         => false,             // só ativa após OTP
-                        'email_verified_at' => null,
-                    ]);
+                $dadosAtualizacao = [
+                    'name'                => $userName,
+                    'password'            => Hash::make($request->password),
+                    'phone'               => $request->telefone,
+                    'photo_url'           => $fotoUrl ?: $egressoExistente->foto_url,
+                    'is_active'           => false,
+                    'email_verified_at'   => null,
+                    'email_verificado_at' => null,
+                ];
 
-                } else {
-                    // Fluxo normal: criar User novo
-                    $user = User::create([
-                        'name'                    => $userName,
-                        'email'                   => $request->email,
-                        'password'                => Hash::make($request->password),
-                        'phone'                   => $request->telefone,
-                        'photo_url'               => $request->tipo === 'empresa' ? $logoUrl : $fotoUrl,
-                        'tipo'                    => $request->tipo,
-                        'role'                    => $request->tipo,
-                        'is_active'               => $isActive,
-                        'registration_ip'         => $request->ip(),
-                        'registration_user_agent' => Str::limit((string) $request->userAgent(), 500),
-                    ]);
+                if ($user->email !== $request->email) {
+                    $dadosAtualizacao['email'] = $request->email;
                 }
 
-                    // ============================================================
-                    // CRIAR ADMIN
-                    // ============================================================
+                $user->update($dadosAtualizacao);
 
-                    if ($request->tipo === 'empresa') {
+            } else {
+                $user = User::create([
+                    'name'                    => $userName,
+                    'email'                   => $request->email,
+                    'password'                => Hash::make($request->password),
+                    'phone'                   => $request->telefone,
+                    'photo_url'               => $request->tipo === 'empresa' ? $logoUrl : $fotoUrl,
+                    'tipo'                    => $request->tipo,
+                    'role'                    => $request->tipo,
+                    'is_active'               => $isActive,
+                    'registration_ip'         => $request->ip(),
+                    'registration_user_agent' => Str::limit((string) $request->userAgent(), 500),
+                ]);
+            }
 
-                    $empresa = Empresa::create([
+            // ============================================================
+            // CRIAR ADMIN
+            // ============================================================
+
+            if ($request->tipo === 'admin') {
+
+                Admin::create([
+                    'user_id' => $user->id,
+                    'nome_completo' => $request->nome_completo,
+                    'email' => $request->email,
+                    'telefone' => $request->telefone,
+                    'foto_url' => $fotoUrl,
+                    'unidade_id' => $request->unidade_id,
+                    'cargo' => 'Administrador',
+                    'nivel' => 'master',
+                    'pode_gerenciar_admins' => true,
+                    'pode_gerenciar_egressos' => true,
+                    'pode_gerenciar_oportunidades' => true,
+                    'pode_gerenciar_eventos' => true,
+                    'pode_gerenciar_configuracoes' => true,
+                    'pode_visualizar_relatorios' => true,
+                    'pode_validar_egressos' => true,
+                    'primeiro_acesso' => false,
+                    'data_expiracao_senha' => now()->addDays(90),
+                    'ativo' => true,
+                ]);
+
+                DB::commit();
+
+                return redirect()
+                    ->route('login')
+                    ->with(
+                        'success',
+                        '✅ Administrador registado com sucesso! Faça login para aceder ao sistema.'
+                    );
+            }
+
+            // ============================================================
+            // CRIAR EMPRESA
+            // ============================================================
+
+            if ($request->tipo === 'empresa') {
+
+                $empresa = Empresa::create([
+                    'user_id' => $user->id,
+                    'nome' => $request->empresa_nome,
+                    'nif' => $request->empresa_nif,
+                    'email' => $request->email,
+                    'telefone' => $request->telefone,
+                    'website' => $request->empresa_website,
+                    'sector' => $request->empresa_sector,
+                    'descricao' => $request->empresa_descricao,
+                    'localizacao' => $request->empresa_localizacao,
+                    'provincia' => $request->empresa_provincia,
+                    'logo_url' => $logoUrl,
+                    'tipo' => 'potencial',
+                    'status_validacao' => 'pendente',
+                    'ativo' => true,
+                ]);
+
+                $token = \App\Models\EmailVerificationToken::gerarToken();
+
+                \App\Models\EmailVerificationToken::where('email', $request->email)
+                    ->where('purpose', 'verificar_registo')
+                    ->whereNull('used_at')
+                    ->update(['used_at' => now()]);
+
+                \App\Models\EmailVerificationToken::create([
+                    'email'      => $request->email,
+                    'token'      => $token,
+                    'purpose'    => 'verificar_registo',
+                    'payload'    => [
                         'user_id' => $user->id,
-                        'nome' => $request->empresa_nome,
-                        'nif' => $request->empresa_nif,
+                        'tipo'    => 'empresa',
+                        'alvo_id' => $empresa->id,
+                    ],
+                    'expires_at' => now()->addHours(24),
+                    'ip'         => $request->ip(),
+                    'user_agent' => Str::limit((string) $request->userAgent(), 500),
+                ]);
+
+                DB::commit();
+
+                try {
+                    $link = route('verificar.email', ['token' => $token]);
+
+                    Mail::to($request->email)->send(
+                        new \App\Mail\VerificarEmailMail(
+                            $request->empresa_nome,
+                            $link,
+                            'empresa'
+                        )
+                    );
+
+                    Log::info('✅ Email de verificação enviado', [
                         'email' => $request->email,
-                        'telefone' => $request->telefone,
-                        'website' => $request->empresa_website,
-                        'sector' => $request->empresa_sector,
-                        'descricao' => $request->empresa_descricao,
-                        'localizacao' => $request->empresa_localizacao,
-                        'provincia' => $request->empresa_provincia,
-                        'logo_url' => $logoUrl,
-                        'tipo' => 'potencial',
-                        'status_validacao' => 'pendente',
-                        'ativo' => true,
+                        'tipo'  => 'empresa',
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('❌ Erro ao enviar email de verificação: ' . $e->getMessage());
+                }
+
+                return redirect()
+                    ->route('login')
+                    ->with([
+                        'status'  => 'pending_email_verification',
+                        'success' => '📧 Enviámos um email de verificação para ' . $request->email . '. Confirme o seu email para concluir o registo.',
+                        'prazo'   => 'Verifique também a pasta de spam',
+                    ]);
+            }
+
+            // ============================================================
+            // CRIAR EGRESSO
+            // ============================================================
+
+            if ($request->tipo === 'egresso') {
+
+                // ========================================================
+                // CASO 1: NÍVEL OURO — REIVINDICAÇÃO
+                // ========================================================
+
+                if ($isNivelOuro && $egressoExistente) {
+
+                    $userIdFinal = $user->id;
+
+                    $egressoExistente->update([
+                        'user_id'            => $userIdFinal,
+                        'email'              => $request->email,
+                        'telefone'           => $request->telefone,
+                        'foto_url'           => $fotoUrl ?: $egressoExistente->foto_url,
+                        'genero'             => $request->genero ?? $egressoExistente->genero ?? 'M',
+                        'data_nascimento'    => $request->data_nascimento ?? $egressoExistente->data_nascimento,
+                        'ano_formatura'      => $request->ano_formatura ?? $egressoExistente->ano_formatura,
+                        'curso_id'           => $request->curso_id ?? $egressoExistente->curso_id,
+                        'claimed_at'         => now(),
+                        'claimed_ip'         => $request->ip(),
+                        'claimed_user_agent' => Str::limit((string) $request->userAgent(), 500),
+                        'status_validacao'   => 'pendente',
+                        'status'             => 'inactive',
+                        'verificado'         => false,
                     ]);
 
-                    // ========================================================
-                    // ✅ FASE 2 — GERAR TOKEN DE VERIFICAÇÃO DE EMAIL
-                    // ========================================================
-                    $token = \App\Models\EmailVerificationToken::gerarToken();
+                    // Gerar OTP
+                    $codigo = OtpCode::gerarCodigo();
 
-                    // Invalidar tokens anteriores deste email
-                    \App\Models\EmailVerificationToken::where('email', $request->email)
-                        ->where('purpose', 'verificar_registo')
+                    OtpCode::where('email', $request->email)
+                        ->where('purpose', 'reclamar_conta')
                         ->whereNull('used_at')
                         ->update(['used_at' => now()]);
 
-                    // Criar novo token (válido 24 horas)
-                    \App\Models\EmailVerificationToken::create([
+                    // ✅ DEBUG — ANTES do create
+                    Log::info('🔍 [OTP] ANTES do create', [
+                        'expires_at_calculado' => now()->addMinutes(30)->format('Y-m-d H:i:s'),
+                        'now'                  => now()->format('Y-m-d H:i:s'),
+                        'timezone'             => config('app.timezone'),
+                    ]);
+
+                    $otpCriado = OtpCode::create([
                         'email'      => $request->email,
-                        'token'      => $token,
-                        'purpose'    => 'verificar_registo',
+                        'code'       => $codigo,
+                        'purpose'    => 'reclamar_conta',
                         'payload'    => [
-                            'user_id' => $user->id,
-                            'tipo'    => 'empresa',
-                            'alvo_id' => $empresa->id,
+                            'egresso_id' => $egressoExistente->id,
+                            'user_id'    => $userIdFinal,
                         ],
-                        'expires_at' => now()->addHours(24),
+                        'expires_at' => now()->addMinutes(30),
                         'ip'         => $request->ip(),
                         'user_agent' => Str::limit((string) $request->userAgent(), 500),
                     ]);
 
-                    // ========================================================
-                    // COMMIT PRIMEIRO
-                    // ========================================================
+                    // ✅ DEBUG — DEPOIS do create (memória)
+                    Log::info('🔍 [OTP] DEPOIS do create (memória)', [
+                        'id'         => $otpCriado->id,
+                        'code'       => $otpCriado->code,
+                        'created_at' => $otpCriado->created_at->format('Y-m-d H:i:s'),
+                        'expires_at' => $otpCriado->expires_at->format('Y-m-d H:i:s'),
+                        'diff_min'   => $otpCriado->created_at->diffInMinutes($otpCriado->expires_at),
+                    ]);
+
                     DB::commit();
 
-                    // ========================================================
-                    // ✅ FASE 2 — ENVIAR EMAIL DE VERIFICAÇÃO (fora da transação)
-                    // ========================================================
-                    try {
-                        $link = route('verificar.email', ['token' => $token]);
+                    // ✅ DEBUG — DEPOIS do commit (BD)
+                    $otpDaBD = OtpCode::find($otpCriado->id);
 
+                    Log::info('🔍 [OTP] DEPOIS do commit (BD)', [
+                        'id'         => $otpDaBD->id,
+                        'created_at' => $otpDaBD->created_at->format('Y-m-d H:i:s'),
+                        'expires_at' => $otpDaBD->expires_at->format('Y-m-d H:i:s'),
+                        'diff_min'   => $otpDaBD->created_at->diffInMinutes($otpDaBD->expires_at),
+                        'used_at'    => $otpDaBD->used_at,
+                    ]);
+
+                    try {
                         Mail::to($request->email)->send(
-                            new \App\Mail\VerificarEmailMail(
-                                $request->empresa_nome,
-                                $link,
-                                'empresa'
-                            )
+                            new OtpMail($codigo, $request->nome_completo)
                         );
 
-                        Log::info('✅ Email de verificação enviado', [
+                        Log::info('✅ Email OTP enviado', [
                             'email' => $request->email,
-                            'tipo'  => 'empresa',
+                            'code'  => $codigo,
                         ]);
                     } catch (\Exception $e) {
-                        Log::error('❌ Erro ao enviar email de verificação: ' . $e->getMessage());
+                        Log::error('❌ Erro ao enviar OTP por email: ' . $e->getMessage());
                     }
 
-                    // ========================================================
-                    // ✅ FASE 2 — NÃO notificar admin ainda
-                    // ========================================================
-
                     return redirect()
-                        ->route('login')
-                        ->with([
-                            'status'  => 'pending_email_verification',
-                            'success' => '📧 Enviámos um email de verificação para ' . $request->email . '. Confirme o seu email para concluir o registo.',
-                            'prazo'   => 'Verifique também a pasta de spam',
-                        ]);
+                        ->route('register.verificar-otp', ['email' => $request->email])
+                        ->with(
+                            'success',
+                            '📧 Enviámos um código de verificação para o seu email. Introduza-o para ativar a conta.'
+                        );
                 }
 
-                    // ============================================================
-                    // CRIAR EGRESSO
-                    // ============================================================
+                // ========================================================
+                // CASO 2: NÍVEL PRATA
+                // ========================================================
 
-                        if ($request->tipo === 'egresso') {
+                $numeroProcessoFinal =
+                    'PENDENTE_' .
+                    Str::random(8) .
+                    '_' .
+                    time();
 
-                            // ========================================================
-                            // CASO 1: NÍVEL OURO
-                            // PROCESSO EXISTE NA BASE
-                            // ========================================================
+                $count = 1;
+                $numeroOriginal = $numeroProcessoFinal;
 
-                       if ($isNivelOuro && $egressoExistente) {
+                while (Egresso::where('numero_processo', $numeroProcessoFinal)->exists()) {
+                    $numeroProcessoFinal = $numeroOriginal . '_' . $count;
+                    $count++;
+                }
 
-    // ========================================================
-    // FASE 3 — REIVINDICAÇÃO DE CONTA (fluxo com OTP)
-    // ========================================================
-    // O User já foi atualizado no bloco "CRIAR USUÁRIO" acima.
-    // ========================================================
-
-    $userIdFinal = $user->id;
-
-    // Atualizar o Egresso existente com os dados do form
-    $egressoExistente->update([
-        'user_id'            => $userIdFinal,
-        'email'              => $request->email,
-        'telefone'           => $request->telefone,
-        'foto_url'           => $fotoUrl ?: $egressoExistente->foto_url,
-        'genero'             => $request->genero ?? $egressoExistente->genero ?? 'M',
-        'data_nascimento'    => $request->data_nascimento ?? $egressoExistente->data_nascimento,
-        'ano_formatura'      => $request->ano_formatura ?? $egressoExistente->ano_formatura,
-        'curso_id'           => $request->curso_id ?? $egressoExistente->curso_id,
-        'claimed_at'         => now(),
-        'claimed_ip'         => $request->ip(),
-        'claimed_user_agent' => Str::limit((string) $request->userAgent(), 500),
-        'status_validacao'   => 'pendente',
-        'status'             => 'inactive',
-        'verificado'         => false,
-    ]);
-
-    // ========================================================
-    // GERAR OTP
-    // ========================================================
-    $codigo = OtpCode::gerarCodigo();
-
-    OtpCode::where('email', $request->email)
-        ->where('purpose', 'reclamar_conta')
-        ->whereNull('used_at')
-        ->update(['used_at' => now()]);
-
-    OtpCode::create([
-        'email'      => $request->email,
-        'code'       => $codigo,
-        'purpose'    => 'reclamar_conta',
-        'payload'    => [
-            'egresso_id' => $egressoExistente->id,
-            'user_id'    => $userIdFinal,
-        ],
-        'expires_at' => now()->addMinutes(30),   // ✅ 30 minutos
-        'ip'         => $request->ip(),
-        'user_agent' => Str::limit((string) $request->userAgent(), 500),
-    ]);
-
-    // ========================================================
-    // COMMIT PRIMEIRO
-    // ========================================================
-    DB::commit();
-
-    // ========================================================
-    // ENVIAR EMAIL DEPOIS DO COMMIT (fora da transação)
-    // ========================================================
-    try {
-        Mail::to($request->email)->send(
-            new OtpMail($codigo, $request->nome_completo)
-        );
-
-        Log::info('✅ Email OTP enviado', [
-            'email' => $request->email,
-            'code'  => $codigo,
-        ]);
-    } catch (\Exception $e) {
-        Log::error('❌ Erro ao enviar OTP por email: ' . $e->getMessage());
-    }
-
-    // ========================================================
-    // REDIRECIONAR
-    // ========================================================
-    return redirect()
-        ->route('register.verificar-otp', ['email' => $request->email])
-        ->with(
-            'success',
-            '📧 Enviámos um código de verificação para o seu email. Introduza-o para ativar a conta.'
-        );
-}
-
-            // ========================================================
-            // CASO 2: NÍVEL PRATA
-            // PROCESSO NÃO EXISTE OU NÃO FOI INFORMADO
-            // ========================================================
-
-            $numeroProcessoFinal =
-                'PENDENTE_' .
-                Str::random(8) .
-                '_' .
-                time();
-
-            // Loop para garantir ID único
-            $count = 1;
-            $numeroOriginal = $numeroProcessoFinal;
-
-            while (Egresso::where('numero_processo', $numeroProcessoFinal)->exists()) {
-                $numeroProcessoFinal = $numeroOriginal . '_' . $count;
-                $count++;
-            }
-
-            $novoEgresso = Egresso::create([
-                'user_id' => $user->id,
-                'curso_id' => $request->curso_id,
-                'numero_processo' => $numeroProcessoFinal,
-                'nome_completo' => $request->nome_completo,
-                'genero' => $request->genero ?? 'M',
-                'data_nascimento' => $request->data_nascimento,
-                'email' => $request->email,
-                'telefone' => $request->telefone,
-                'foto_url' => $fotoUrl,
-                'ano_formatura' => $request->ano_formatura,
-                'status_validacao' => 'pendente',
-                'status' => 'inactive',
-                'verificado' => false,
-                'observacoes' =>
-                    'Cadastro pendente de validação manual. Nº processo informado: ' .
-                    ($request->numero_processo ?? 'Não informado'),
-            ]);
-
-            // ========================================================
-            // ✅ FASE 2 — GERAR TOKEN DE VERIFICAÇÃO DE EMAIL
-            // ========================================================
-            $token = \App\Models\EmailVerificationToken::gerarToken();
-
-            // Invalidar tokens anteriores deste email
-            \App\Models\EmailVerificationToken::where('email', $request->email)
-                ->where('purpose', 'verificar_registo')
-                ->whereNull('used_at')
-                ->update(['used_at' => now()]);
-
-            // Criar novo token (válido 24 horas)
-            \App\Models\EmailVerificationToken::create([
-                'email'      => $request->email,
-                'token'      => $token,
-                'purpose'    => 'verificar_registo',
-                'payload'    => [
-                    'user_id'  => $user->id,
-                    'tipo'     => 'egresso',
-                    'alvo_id'  => $novoEgresso->id,
-                ],
-                'expires_at' => now()->addHours(24),
-                'ip'         => $request->ip(),
-                'user_agent' => Str::limit((string) $request->userAgent(), 500),
-            ]);
-
-            // ========================================================
-            // COMMIT PRIMEIRO
-            // ========================================================
-            DB::commit();
-
-            // ========================================================
-            // ✅ FASE 2 — ENVIAR EMAIL DE VERIFICAÇÃO (fora da transação)
-            // ========================================================
-            try {
-                $link = route('verificar.email', ['token' => $token]);
-
-                Mail::to($request->email)->send(
-                    new \App\Mail\VerificarEmailMail(
-                        $request->nome_completo,
-                        $link,
-                        'egresso'
-                    )
-                );
-
-                Log::info('✅ Email de verificação enviado', [
+                $novoEgresso = Egresso::create([
+                    'user_id' => $user->id,
+                    'curso_id' => $request->curso_id,
+                    'numero_processo' => $numeroProcessoFinal,
+                    'nome_completo' => $request->nome_completo,
+                    'genero' => $request->genero ?? 'M',
+                    'data_nascimento' => $request->data_nascimento,
                     'email' => $request->email,
-                    'tipo'  => 'egresso',
+                    'telefone' => $request->telefone,
+                    'foto_url' => $fotoUrl,
+                    'ano_formatura' => $request->ano_formatura,
+                    'status_validacao' => 'pendente',
+                    'status' => 'inactive',
+                    'verificado' => false,
+                    'observacoes' =>
+                        'Cadastro pendente de validação manual. Nº processo informado: ' .
+                        ($request->numero_processo ?? 'Não informado'),
                 ]);
-            } catch (\Exception $e) {
-                Log::error('❌ Erro ao enviar email de verificação: ' . $e->getMessage());
-            }
 
-            // ========================================================
-            // ✅ FASE 2 — NÃO notificar admin ainda (só após verificação)
-            // ========================================================
+                $token = \App\Models\EmailVerificationToken::gerarToken();
 
-            return redirect()
-                ->route('login')
-                ->with([
-                    'status'  => 'pending_email_verification',
-                    'success' => '📧 Enviámos um email de verificação para ' . $request->email . '. Confirme o seu email para concluir o registo.',
-                    'prazo'   => 'Verifique também a pasta de spam',
+                \App\Models\EmailVerificationToken::where('email', $request->email)
+                    ->where('purpose', 'verificar_registo')
+                    ->whereNull('used_at')
+                    ->update(['used_at' => now()]);
+
+                \App\Models\EmailVerificationToken::create([
+                    'email'      => $request->email,
+                    'token'      => $token,
+                    'purpose'    => 'verificar_registo',
+                    'payload'    => [
+                        'user_id'  => $user->id,
+                        'tipo'     => 'egresso',
+                        'alvo_id'  => $novoEgresso->id,
+                    ],
+                    'expires_at' => now()->addHours(24),
+                    'ip'         => $request->ip(),
+                    'user_agent' => Str::limit((string) $request->userAgent(), 500),
                 ]);
+
+                DB::commit();
+
+                try {
+                    $link = route('verificar.email', ['token' => $token]);
+
+                    Mail::to($request->email)->send(
+                        new \App\Mail\VerificarEmailMail(
+                            $request->nome_completo,
+                            $link,
+                            'egresso'
+                        )
+                    );
+
+                    Log::info('✅ Email de verificação enviado', [
+                        'email' => $request->email,
+                        'tipo'  => 'egresso',
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('❌ Erro ao enviar email de verificação: ' . $e->getMessage());
+                }
+
+                return redirect()
+                    ->route('login')
+                    ->with([
+                        'status'  => 'pending_email_verification',
+                        'success' => '📧 Enviámos um email de verificação para ' . $request->email . '. Confirme o seu email para concluir o registo.',
+                        'prazo'   => 'Verifique também a pasta de spam',
+                    ]);
             }
 
             // ============================================================
@@ -791,10 +831,6 @@ private function mascararNome(?string $nome): string
                 );
 
         } catch (\Exception $e) {
-
-            // ========================================================
-            // DESFAZER TRANSAÇÃO
-            // ========================================================
 
             DB::rollBack();
 
@@ -817,8 +853,7 @@ private function mascararNome(?string $nome): string
     }
 
     /**
-     * Notificar administradores sobre novo cadastro pendente
-     * (Egresso)
+     * Notificar administradores sobre novo cadastro pendente (Egresso)
      */
     private function notificarAdminSobrePendente(Egresso $egresso)
     {
@@ -847,7 +882,6 @@ private function mascararNome(?string $nome): string
                 Log::error('❌ Erro ao enviar email para admin: ' . $e->getMessage());
             }
 
-            // Notificação no sino
             try {
                 $adminPerfil = $admin->admin;
 
@@ -888,7 +922,6 @@ private function mascararNome(?string $nome): string
                 ]
             );
 
-            // Notificação no sino
             try {
                 $adminPerfil = $admin->admin;
 

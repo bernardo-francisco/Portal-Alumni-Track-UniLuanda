@@ -5,13 +5,15 @@
         {{-- LADO ESQUERDO --}}
         <div class="d-flex align-items-center gap-3">
 
+            {{-- ✅ BOTÃO HAMBURGER — igual ao admin --}}
             <button type="button"
                     class="btn btn-light border rounded-circle p-2 topbar-icon-btn"
                     onclick="toggleSidebar()"
                     aria-label="Abrir/fechar menu"
                     title="Abrir/fechar menu"
-                    id="btnToggleSidebar">
-                <i class="fas fa-bars"></i>
+                    id="btnToggleSidebar"
+                    style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="fas fa-bars" style="color: #1a1a1a; font-size: 1rem;"></i>
             </button>
 
             <div class="lh-sm">
@@ -40,7 +42,8 @@
                         data-bs-toggle="dropdown"
                         data-bs-auto-close="outside"
                         aria-expanded="false"
-                        title="Notificações">
+                        title="Notificações"
+                        style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bell text-warning fs-5"></i>
 
                     @if(($notificacoesNaoLidasEmpresa ?? 0) > 0)

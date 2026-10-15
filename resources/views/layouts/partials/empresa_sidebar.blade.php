@@ -1,67 +1,72 @@
+{{-- ============================================================
+     SIDEBAR — EMPRESA (alinhado ao egresso)
+============================================================ --}}
 <aside class="empresa-sidebar" id="empSidebarPanel">
 
-    {{-- LOGO / MARCA --}}
+    {{-- LOGO --}}
     <div class="sidebar-brand">
         @php
             $empresaAtual = Auth::user()->empresa ?? null;
+            $logoSidebar = $empresaAtual && $empresaAtual->logo_url
+                ? asset($empresaAtual->logo_url)
+                : asset('uploads/logos/Universidade-Logotipo.png');
         @endphp
 
-        <a href="{{ route('empresa.dashboard') }}" class="sidebar-brand-link">
-            @if($empresaAtual && $empresaAtual->logo_url)
-                <img src="{{ asset($empresaAtual->logo_url) }}"
-                     alt="Logótipo de {{ $empresaAtual->nome }}"
-                     class="sidebar-logo">
-            @else
-                <div class="sidebar-logo-placeholder">
-                    <i class="fas fa-building"></i>
-                </div>
-            @endif
-
-            <h6 class="sidebar-empresa-nome mt-2 mb-0">
-                {{ $empresaAtual->nome ?? 'Minha Empresa' }}
-            </h6>
-            <small class="sidebar-empresa-sector">
-                {{ $empresaAtual->sector ?? 'Empresa' }}
-            </small>
-        </a>
+        <img src="{{ $logoSidebar }}"
+             alt="{{ $empresaAtual->nome ?? 'Universidade de Luanda' }}">
     </div>
 
-    {{-- NAVEGAÇÃO (sem badges — agora vão para o sino) --}}
+    {{-- NAVEGAÇÃO --}}
     <nav class="sidebar-nav">
 
-        <div class="nav-section"><span>Principal</span></div>
+        {{-- PRINCIPAL --}}
+        <div class="nav-section">
+            <span>Principal</span>
+        </div>
 
         <a href="{{ route('empresa.dashboard') }}"
            class="nav-item {{ request()->routeIs('empresa.dashboard') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+            <span class="nav-icon icon-primary"><i class="fas fa-chart-pie"></i></span>
             <span class="nav-label">Dashboard</span>
         </a>
 
         <a href="{{ route('empresa.perfil') }}"
            class="nav-item {{ request()->routeIs('empresa.perfil*') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-building"></i></span>
+            <span class="nav-icon icon-info"><i class="fas fa-building"></i></span>
             <span class="nav-label">Perfil da Empresa</span>
         </a>
 
-        <div class="nav-section"><span>Gestão</span></div>
+        {{-- GESTÃO --}}
+        <div class="nav-section">
+            <span>Gestão</span>
+        </div>
 
         <a href="{{ route('empresa.oportunidades.index') }}"
            class="nav-item {{ request()->routeIs('empresa.oportunidades.*') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-briefcase"></i></span>
+            <span class="nav-icon icon-primary"><i class="fas fa-briefcase"></i></span>
             <span class="nav-label">Oportunidades</span>
+            @if(isset($totalOportunidades) && $totalOportunidades > 0)
+                <span class="nav-badge badge-primary">{{ $totalOportunidades }}</span>
+            @endif
         </a>
 
         <a href="{{ route('empresa.candidaturas.index') }}"
            class="nav-item {{ request()->routeIs('empresa.candidaturas.*') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-file-signature"></i></span>
+            <span class="nav-icon icon-success"><i class="fas fa-file-signature"></i></span>
             <span class="nav-label">Candidaturas</span>
+            @if(isset($totalCandidaturas) && $totalCandidaturas > 0)
+                <span class="nav-badge badge-success">{{ $totalCandidaturas }}</span>
+            @endif
         </a>
 
-        <div class="nav-section"><span>Conta</span></div>
+        {{-- CONTA --}}
+        <div class="nav-section">
+            <span>Conta</span>
+        </div>
 
         <a href="#" class="nav-item nav-item-danger"
            onclick="event.preventDefault(); document.getElementById('logout-empresa-form').submit();">
-            <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="nav-icon icon-danger"><i class="fas fa-sign-out-alt"></i></span>
             <span class="nav-label">Sair</span>
         </a>
 

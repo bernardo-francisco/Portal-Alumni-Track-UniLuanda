@@ -121,13 +121,22 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        // ------------------------------------------------------------
+       // ------------------------------------------------------------
         // Rate limiter para a VERIFICAÇÃO DE Nº DE PROCESSO (AJAX)
         // ------------------------------------------------------------
-        // Bloqueia: máximo 5 consultas por minuto por IP
+        // Bloqueia: máximo 10 consultas por minuto por IP (aumentado para testes)
+        // Devolve SEMPRE JSON no 429 (nunca HTML)
         // ------------------------------------------------------------
         RateLimiter::for('verificar-processo', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+            return Limit::perMinute(10)
+                ->by($request->ip())
+                ->response(function (Request $request, array $headers) {
+                    return response()->json([
+                        'success'             => false,
+                        'message'             => 'Demasiadas tentativas. Aguarde 1 minuto.',
+                        'retry_after_minutes' => 1,
+                    ], 429, $headers);
+                });
         });
 
         // ------------------------------------------------------------

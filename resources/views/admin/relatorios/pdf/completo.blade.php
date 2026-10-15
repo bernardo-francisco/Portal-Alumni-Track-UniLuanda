@@ -914,6 +914,181 @@
         </div>
     @endif
 
+            <div class="page-break"></div>
+
+    {{-- ============================================================
+         15. AUDITORIA — Actividades dos administradores
+    ============================================================ --}}
+    <div class="section-block">
+        <div class="section-title">15. Auditoria — Actividades dos Administradores</div>
+
+        {{-- Cards de estatísticas --}}
+        <table class="stats-table">
+            <tr>
+                <td class="stat-box stat-box-info">
+                    <span class="stat-value">{{ $totalAuditoria }}</span>
+                    <span class="stat-label">Total de Acções</span>
+                </td>
+                <td class="stat-box stat-box-danger">
+                    <span class="stat-value">{{ $auditoriaCriticas }}</span>
+                    <span class="stat-label">Críticas</span>
+                </td>
+                <td class="stat-box stat-box-warning">
+                    <span class="stat-value">{{ $auditoriaAvisos }}</span>
+                    <span class="stat-label">Avisos</span>
+                </td>
+                <td class="stat-box stat-box-success">
+                    <span class="stat-value">{{ $auditoriaInfos }}</span>
+                    <span class="stat-label">Informativas</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- Top admins --}}
+    @if($auditoriaTopAdmins->count() > 0)
+        <div class="section-block">
+            <div class="section-title">Top Administradores por Actividade</div>
+
+            <table class="report-table">
+                <colgroup>
+                    <col style="width: 70%;">
+                    <col style="width: 30%;">
+                </colgroup>
+
+                <thead>
+                    <tr>
+                        <th>Admin</th>
+                        <th class="text-center">Total de Acções</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach($auditoriaTopAdmins as $a)
+                        <tr>
+                            <td><strong>{{ $a->admin_nome ?? 'Desconhecido' }}</strong></td>
+                            <td class="text-center">
+                                <span class="badge badge-primary">{{ $a->total }}</span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    {{-- Top acções --}}
+    @if($auditoriaTopAcoes->count() > 0)
+        <div class="section-block">
+            <div class="section-title">Top Acções Realizadas</div>
+
+            <table class="report-table">
+                <colgroup>
+                    <col style="width: 70%;">
+                    <col style="width: 30%;">
+                </colgroup>
+
+                <thead>
+                    <tr>
+                        <th>Acção</th>
+                        <th class="text-center">Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach($auditoriaTopAcoes as $a)
+                        <tr>
+                            <td><code style="font-size: 8px;">{{ $a->acao }}</code></td>
+                            <td class="text-center">
+                                <span class="badge badge-info">{{ $a->total }}</span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    <div class="page-break"></div>
+
+    {{-- Registo detalhado das últimas 100 acções --}}
+    <div class="section-block">
+        <div class="section-title">
+            Registo Detalhado — Últimas {{ $auditoriaRecentes->count() }} Acções
+        </div>
+
+        <table class="report-table" style="font-size: 7.5px;">
+            <colgroup>
+                <col style="width: 11%;">
+                <col style="width: 16%;">
+                <col style="width: 15%;">
+                <col style="width: 10%;">
+                <col style="width: 28%;">
+                <col style="width: 9%;">
+                <col style="width: 11%;">
+            </colgroup>
+
+            <thead>
+    <tr>
+        <th>Data</th>
+        <th>Admin</th>
+        <th class="text-center">Unidade</th>
+        <th>Acção</th>
+        <th>Alvo</th>
+        <th>Descrição</th>
+        <th class="text-center">Severidade</th>
+        <th>IP</th>
+    </tr>
+</thead>
+
+<tbody>
+    @forelse($auditoriaRecentes as $log)
+        @php
+            $badge = match($log->severidade) {
+                'critico' => 'badge-danger',
+                'aviso'   => 'badge-warning',
+                default   => 'badge-info',
+            };
+        @endphp
+
+        <tr>
+            <td class="nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
+            <td>{{ Str::limit($log->admin_nome ?? '—', 20, '…') }}</td>
+            <td class="text-center">
+                @if($log->admin_unidade_sigla)
+                    <span class="badge badge-info">{{ $log->admin_unidade_sigla }}</span>
+                @else
+                    —
+                @endif
+            </td>
+            <td><code style="font-size: 7px;">{{ Str::limit($log->acao, 20, '…') }}</code></td>
+            <td>
+                @if($log->alvo_tipo)
+                    {{ $log->alvo_tipo }}
+                    @if($log->alvo_id) #{{ $log->alvo_id }} @endif
+                @else
+                    —
+                @endif
+            </td>
+            <td>{{ Str::limit($log->descricao ?? '—', 45, '…') }}</td>
+            <td class="text-center">
+                <span class="badge {{ $badge }}">{{ ucfirst($log->severidade) }}</span>
+            </td>
+            <td class="nowrap">{{ $log->ip ?? '—' }}</td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="8" class="text-center text-muted" style="padding: 15px;">
+                Nenhuma actividade registada.
+            </td>
+        </tr>
+    @endforelse
+</tbody>
+
+
+        </table>
+    </div>
+
     {{-- ============================================================
          FIM — NOTA FINAL
     ============================================================ --}}

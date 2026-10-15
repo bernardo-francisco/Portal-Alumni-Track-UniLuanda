@@ -257,6 +257,44 @@
                     </div>
                 </div>
 
+                {{-- Área de Atuação --}}
+<div class="col-md-4">
+    <label for="area_atuacao" class="form-label">
+        <i class="fas fa-briefcase me-1"></i> Área de Atuação
+    </label>
+    <select id="area_atuacao" name="area_atuacao"
+            class="form-select @error('area_atuacao') is-invalid @enderror">
+        <option value="">Selecione...</option>
+        @foreach([
+            'Tecnologia',
+            'Saúde',
+            'Educação',
+            'Banca e Finanças',
+            'Construção Civil',
+            'Consultoria',
+            'Energia',
+            'Telecomunicações',
+            'Indústria',
+            'Agricultura',
+            'Turismo',
+            'Direito',
+            'Recursos Humanos',
+            'Marketing e Vendas',
+            'Logística e Transportes',
+            'Outro',
+        ] as $area)
+            <option value="{{ $area }}"
+                {{ old('area_atuacao', $egresso->area_atuacao) == $area ? 'selected' : '' }}>
+                {{ $area }}
+            </option>
+        @endforeach
+    </select>
+    @error('area_atuacao') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    <small class="text-muted">
+        Deixe em branco para usar o sector do emprego atual
+    </small>
+</div>
+
                 <!-- ============================================================
                      SITUAÇÃO PROFISSIONAL
                 ============================================================ -->

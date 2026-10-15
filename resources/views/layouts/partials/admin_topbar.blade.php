@@ -1,6 +1,6 @@
-<!-- =========================
+{{-- =========================
      TOPBAR ADMINISTRATIVA
-========================= -->
+========================= --}}
 <header class="navbar navbar-expand-lg bg-white border-bottom shadow-sm admin-topbar py-2">
 
     <div class="container-fluid px-3 px-lg-4">
@@ -10,14 +10,14 @@
 
             {{-- ✅ BOTÃO HAMBURGER ÚNICO — funciona em desktop E mobile --}}
             <button type="button"
-        class="btn btn-light border rounded-circle p-2"
-        onclick="toggleSidebar()"
-        aria-label="Abrir/fechar menu"
-        title="Abrir/fechar menu"
-        id="btnToggleSidebar"
-        style="width: 40px; height: 40px;">
-    <i class="fas fa-bars"></i>
-</button>
+                    class="btn btn-light border rounded-circle p-2"
+                    onclick="toggleSidebar()"
+                    aria-label="Abrir/fechar menu"
+                    title="Abrir/fechar menu"
+                    id="btnToggleSidebar"
+                    style="width: 40px; height: 40px;">
+                <i class="fas fa-bars"></i>
+            </button>
 
             <div class="lh-sm">
                 <h1 class="h5 fw-semibold text-dark mb-0">Dashboard</h1>
@@ -401,5 +401,3 @@
     </div>
 
 </header>
-
-

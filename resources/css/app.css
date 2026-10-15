@@ -223,11 +223,11 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 .egresso-sidebar,
 .empresa-sidebar {
     position: fixed;
-    top: var(--topbar-h);
+    top: 0;                                /* ⬅️ Começa no TOPO */
     left: 0;
     bottom: 0;
     width: var(--sidebar-w);
-    height: calc(100vh - var(--topbar-h));
+    height: 100vh;                         /* ⬅️ Altura total */
     min-height: 0;
     background: var(--surface);
     border-right: 1px solid var(--border-color);
@@ -238,7 +238,6 @@ body.layout-public .main-content { height: auto; overflow: visible; }
     box-shadow: 0 0 30px rgba(10, 10, 10, .05);
     transition: transform .3s ease, opacity .3s ease;
 }
-
 /* Marca / logÃ³tipo */
 .sidebar-brand {
     flex-shrink: 0;
@@ -256,10 +255,80 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 .sidebar-brand img:hover { transform: scale(1.03); }
 
 /* Variante empresa (logÃ³tipo + nome do sector) */
-.empresa-sidebar .sidebar-brand { display: block; min-height: 0; padding: 22px 18px 18px; text-align: center; }
+/* Marca do sidebar empresa — igual ao admin/egresso */
+.empresa-sidebar .sidebar-brand {
+    flex-shrink: 0;
+    width: 100%;
+    min-height: 140px;
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--ink-100);
+    background: linear-gradient(135deg, var(--surface-alt), var(--surface));
+    position: relative;
+    text-align: center;
+}
+
 .empresa-sidebar .sidebar-brand::after {
-    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 40px; height: 3px; background: var(--gradient-gold); border-radius: 3px 3px 0 0;
+    /* mantém a barra dourada */
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: var(--gradient-gold);
+    border-radius: 3px 3px 0 0;
+}
+
+.empresa-sidebar .sidebar-logo,
+.empresa-sidebar .sidebar-brand img {
+    display: block;
+    height: 120px;
+    width: auto;
+    max-width: 100%;
+    max-height: 120px;
+    margin: 0 auto;
+    object-fit: contain;
+    transition: transform .25s ease;
+}
+.empresa-sidebar .sidebar-brand-link:hover .sidebar-logo,
+.empresa-sidebar .sidebar-brand img:hover { transform: scale(1.03); }
+
+.empresa-sidebar .sidebar-logo-placeholder {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: var(--black);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    border: 2px solid var(--primary);
+    box-shadow: 0 6px 16px -4px rgba(201,162,39,.35);
+}
+
+.empresa-sidebar .sidebar-empresa-nome {
+    margin-top: 10px;
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--black);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.empresa-sidebar .sidebar-empresa-sector {
+    display: block;
+    margin-top: 2px;
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: .6px;
 }
 .sidebar-brand-link { display: block; }
 .sidebar-logo { display: block; height: 64px; max-width: 180px; margin: 0 auto; object-fit: contain; transition: transform .25s ease; }
@@ -399,15 +468,41 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 .sidebar-footer-text i { color: var(--primary); opacity: .8; }
 
 /* ---------- 4.2 Topbar administrativa / egresso ---------- */
+/* ============================================================
+   TOPBAR ADMIN — Alinhada com o sidebar
+============================================================ */
 .admin-topbar {
-    position: fixed; top: 0; left: 0; right: 0; width: 100%;
-    height: var(--topbar-h); min-height: var(--topbar-h);
-    display: flex; align-items: center; flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-w);
+    right: 0;
+    width: auto;
+    height: var(--topbar-h);
+    min-height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
     background: var(--surface);
     border-bottom: 1px solid var(--border-color);
     box-shadow: 0 2px 12px rgba(10, 10, 10, .06);
     z-index: 1050;
+    transition: left .3s ease, width .3s ease;
 }
+
+/* Sidebar colapsado (desktop) */
+body.sidebar-collapsed .admin-topbar {
+    left: 0;
+    width: 100%;
+}
+
+/* Mobile — topbar ocupa tudo */
+@media (max-width: 991.98px) {
+    .admin-topbar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+}
+
 .admin-topbar .page-title { font-size: 1.1rem; font-weight: 600; color: var(--text); }
 .admin-topbar .page-title small { display: block; margin-top: 2px; font-size: .78rem; font-weight: 400; color: var(--text-muted); }
 .admin-topbar .topbar-actions { position: relative; z-index: 1051; display: flex; align-items: center; gap: 10px; }
@@ -421,7 +516,40 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 .admin-topbar .dropdown-toggle:focus { background: var(--surface-alt); color: var(--text); }
 
 /* ---------- 4.3 Topbar da Ã¡rea empresa ---------- */
-.empresa-topbar { position: sticky; top: 0; z-index: 1030; height: var(--topbar-h); flex-shrink: 0; }
+/* ---------- 4.3 Topbar da área empresa ---------- */
+.empresa-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-w);
+    right: 0;
+    width: auto;
+    height: var(--topbar-h);
+    min-height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 12px rgba(10, 10, 10, .06);
+    z-index: 1050;
+    transition: left .3s ease, width .3s ease;
+}
+
+/* Sidebar colapsado (desktop) */
+body.emp-sidebar-collapsed .empresa-topbar {
+    left: 0;
+    width: 100%;
+}
+
+/* Mobile — topbar ocupa tudo */
+@media (max-width: 991.98px) {
+    .empresa-topbar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+}
+
+.topbar-icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; transition: background .2s ease; }
+.topbar-icon-btn:hover { background: var(--ink-50); }
 .topbar-icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; transition: background .2s ease; }
 .topbar-icon-btn:hover { background: var(--ink-50); }
 
@@ -497,9 +625,34 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 .main-content .content-wrapper::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 /* Ãrea empresa (layout flex com margem) */
+/* Área empresa (layout fixed igual ao admin) */
 #empPanelShell { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-.emp-main { margin-left: var(--sidebar-w); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: left .3s ease, margin-left .3s ease; }
-.emp-content { flex: 1 1 auto; padding: 24px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+.emp-main {
+    position: fixed;
+    top: var(--topbar-h);
+    left: var(--sidebar-w);
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    transition: left .3s ease, margin-left .3s ease;
+}
+
+.emp-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    padding: 24px 32px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
 .emp-content::-webkit-scrollbar { width: 8px; }
 .emp-content::-webkit-scrollbar-track { background: transparent; }
 .emp-content::-webkit-scrollbar-thumb { background: var(--ink-200); border-radius: 4px; }
@@ -539,8 +692,7 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 
     body.sidebar-collapsed .main-content,
     body.egresso-sidebar-collapsed .main-content { left: 0; margin-left: 0; width: 100%; }
-    body.emp-sidebar-collapsed .emp-main { margin-left: 0; }
-
+    body.emp-sidebar-collapsed .emp-main { left: 0; margin-left: 0; width: 100%; }
     body:not(.emp-sidebar-collapsed) .empresa-footer { margin-left: var(--sidebar-w); }
     body.emp-sidebar-collapsed .empresa-footer { margin-left: 0; }
 
@@ -550,7 +702,7 @@ body.layout-public .main-content { height: auto; overflow: visible; }
 
 /* ---------- 4.7 Mobile / tablet ---------- */
 @media (max-width: 991.98px) {
-    .admin-sidebar, .egresso-sidebar, .empresa-sidebar {
+       .admin-sidebar, .egresso-sidebar, .empresa-sidebar {
         top: 0; bottom: 0; height: 100vh;
         width: var(--sidebar-w-mobile);
         transform: translateX(-100%);
@@ -558,11 +710,13 @@ body.layout-public .main-content { height: auto; overflow: visible; }
         box-shadow: 0 0 40px rgba(10,10,10,.2);
     }
     .admin-sidebar.open, .egresso-sidebar.open, .empresa-sidebar.open { transform: translateX(0); }
+    .admin-sidebar.open, .egresso-sidebar.open, .empresa-sidebar.open { transform: translateX(0); }
     .sidebar-overlay { z-index: 1060; }
     .emp-sidebar-overlay { z-index: 1049; }
     .admin-topbar { left: 0; width: 100%; }
     .main-content { top: var(--topbar-h); left: 0; right: 0; bottom: 0; width: 100%; z-index: 1; }
-    .emp-main { margin-left: 0; }
+    .empresa-topbar { left: 0 !important; width: 100% !important; }
+    .emp-main { left: 0 !important; width: 100% !important; margin-left: 0 !important; }
     .sidebar-brand { min-height: 100px; padding: 15px; }
     .sidebar-brand img { height: 90px; }
     .empresa-sidebar .sidebar-brand { min-height: 0; }
@@ -1436,7 +1590,7 @@ body:has(.login-card), body:has(.register-card) { min-height: 100vh; display: fl
     display: flex; align-items: center; gap: 1rem;
     padding: 1.25rem 1.5rem;
     border: none; border-radius: 16px;
-    color: var(--stat-fg, #fff);
+    color: var(--stat-fg, var(--text));  
     box-shadow: 0 4px 12px rgba(10,10,10,.1);
     transition: all .3s cubic-bezier(.4, 0, .2, 1);
 }
@@ -1480,7 +1634,11 @@ a .stat-card, a:hover .stat-card, a:focus .stat-card { text-decoration: none; }
     background: rgba(255, 255, 255, 0.22) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
-.stat-card-secondary { background: linear-gradient(135deg, #525252, #a3a3a3); }
+.stat-card-secondary { 
+    background: linear-gradient(135deg, #525252, #a3a3a3); 
+    --stat-fg: #fff;
+    color: #fff; 
+}
 
 .stat-icon-wrap, .stat-card-icon {
     position: relative; z-index: 1;
@@ -1498,7 +1656,31 @@ a .stat-card, a:hover .stat-card, a:focus .stat-card { text-decoration: none; }
 .stat-card-primary .stat-icon-wrap, .stat-card-primary .stat-card-icon { color: var(--primary); }
 
 .stat-body, .stat-card-body { position: relative; z-index: 1; flex-grow: 1; min-width: 0; color: inherit; }
-.stat-value, .stat-card-value { margin-bottom: .25rem; color: inherit !important; font-size: 1.75rem; font-weight: 700; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.stat-value, .stat-card-value { 
+    margin-bottom: .25rem; 
+    color: inherit !important; 
+    font-size: 1.75rem; 
+    font-weight: 700; 
+    line-height: 1; 
+    text-shadow: 0 1px 2px rgba(0,0,0,.15); 
+}
+
+/* ✅ Texto descritivo (perfil) — tamanho controlado */
+.stat-value-text { 
+    font-size: 1.05rem !important; 
+    font-weight: 700 !important; 
+    color: #0f172a !important; 
+    line-height: 1.25 !important; 
+    letter-spacing: -0.01em; 
+    margin-bottom: 2px; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    word-break: break-word; 
+    text-shadow: none !important; 
+}
 .stat-card-value { font-size: 2.1rem; font-weight: 800; letter-spacing: -.5px; }
 .stat-label, .stat-card-label { color: inherit !important; font-size: .85rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; opacity: .92; text-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .stat-card-label { margin-bottom: .35rem; font-size: .72rem; font-weight: 700; letter-spacing: .9px; }
@@ -4487,5 +4669,240 @@ input[type="number"] {
 
 .post-card .card-header .text-muted {
     color: #6b7280 !important;
+}
+
+/* ============================================================
+   EGRESSO — Sidebar e Topbar com mesmo padrão do Admin
+============================================================ */
+
+/* ---------- Sidebar EGRESSO — topo total ---------- */
+.egresso-sidebar {
+    position: fixed;
+    top: 0;                                /* ⬅️ Começa NO TOPO */
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    height: 100vh;                         /* ⬅️ Altura total */
+    min-height: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 1040;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(10, 10, 10, .05);
+    transition: transform .3s ease, opacity .3s ease;
+}
+
+/* Marca / logo */
+/* Marca / logo */
+.egresso-sidebar .sidebar-brand {
+    flex-shrink: 0;
+    width: 100%;
+    min-height: 140px;
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--ink-100);
+    background: linear-gradient(135deg, var(--surface-alt), var(--surface));
+    position: relative;
+}
+
+.egresso-sidebar .sidebar-brand img {
+    display: block;
+    height: 120px;
+    width: auto;
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+}
+
+/* Navegação */
+.egresso-sidebar .sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 16px 14px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-200) transparent;
+}
+
+.egresso-sidebar .sidebar-nav::-webkit-scrollbar { width: 5px; }
+.egresso-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--ink-200);
+    border-radius: 10px;
+}
+.egresso-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Rodapé */
+.egresso-sidebar .sidebar-footer {
+    flex-shrink: 0;
+    padding: 14px 18px;
+    border-top: 1px solid var(--ink-100);
+    background: var(--surface);
+}
+
+/* ---------- Topbar EGRESSO — começa depois do sidebar ---------- */
+@media (min-width: 992px) {
+    .egresso-topbar {
+        position: fixed;
+        top: 0;
+        left: var(--sidebar-w);              /* ⬅️ Começa depois do sidebar */
+        right: 0;
+        width: auto;
+        height: var(--topbar-h);
+        min-height: var(--topbar-h);
+        z-index: 1050;
+        transition: left .3s ease;
+    }
+
+    body.egresso-sidebar-collapsed .egresso-topbar {
+        left: 0;
+        width: 100%;
+    }
+}
+
+/* ---------- Main do EGRESSO ---------- */
+
+
+/* ---------- Mobile ---------- */
+@media (max-width: 991.98px) {
+    .egresso-sidebar {
+        top: 0;
+        bottom: 0;
+        height: 100vh;
+        width: var(--sidebar-w-mobile);
+        transform: translateX(-100%);
+        z-index: 1070;
+    }
+
+    .egresso-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .egresso-topbar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* ================================================================
+   DROPDOWNS — Hover/Active em dourado (UniLuanda)
+   Substitui o azul padrão do Bootstrap pela paleta da universidade
+   ================================================================ */
+
+/* Variáveis do Bootstrap redefinidas (afeta todos os .dropdown-menu) */
+.dropdown-menu,
+.dropdown-menu.show {
+    --bs-dropdown-link-hover-bg: var(--gold-50, #fbf6e3);
+    --bs-dropdown-link-hover-color: var(--primary-dark, #a67c00);
+    --bs-dropdown-link-active-bg: var(--primary, #c9a227);
+    --bs-dropdown-link-active-color: var(--on-primary, #0a0a0a);
+    --bs-dropdown-link-color: var(--text, #1a1a1a);
+}
+
+/* Item normal */
+.dropdown-item {
+    color: var(--text);
+    border-radius: 8px;
+    padding: .5rem .85rem;
+    font-size: .85rem;
+    font-weight: 500;
+    transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+/* Hover / focus — dourado suave */
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item:focus-visible {
+    background: var(--gold-50) !important;
+    color: var(--primary-dark) !important;
+    transform: translateX(2px);
+}
+
+/* Item ativo (selecionado) — dourado sólido */
+.dropdown-item.active,
+.dropdown-item:active {
+    background: var(--primary) !important;
+    color: var(--on-primary) !important;
+    font-weight: 700;
+}
+
+/* Ícones dentro dos itens herdam a cor */
+.dropdown-item i,
+.dropdown-item .fa,
+.dropdown-item .fas,
+.dropdown-item .far {
+    color: inherit;
+    transition: color .18s ease;
+}
+
+.dropdown-item:hover i,
+.dropdown-item:focus i {
+    color: var(--primary-dark) !important;
+}
+
+/* Divisor */
+.dropdown-divider {
+    border-top: 1px solid var(--border-color);
+    margin: .35rem 0;
+}
+
+/* Header do dropdown */
+.dropdown-header {
+    color: var(--text-soft);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    padding: .5rem .85rem;
+}
+
+/* Estado disabled — manter cinza, não azul */
+.dropdown-item:disabled,
+.dropdown-item.disabled {
+    background: transparent !important;
+    color: var(--text-soft) !important;
+    opacity: .6;
+}
+
+/* Item "danger" (ex.: Sair) — mantém vermelho no hover */
+.dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:focus {
+    background: #fef2f2 !important;
+    color: var(--danger-dark) !important;
+}
+.dropdown-item.text-danger:hover i,
+.dropdown-item.text-danger:focus i {
+    color: var(--danger-dark) !important;
+}
+
+/* Item "success" (ex.: Terminar sessão) */
+.dropdown-item.text-success:hover,
+.dropdown-item.text-success:focus {
+    background: #ecfdf5 !important;
+    color: var(--success-dark) !important;
+}
+.dropdown-item.text-success:hover i,
+.dropdown-item.text-success:focus i {
+    color: var(--success-dark) !important;
+}
+
+/* Item "warning" */
+.dropdown-item.text-warning:hover,
+.dropdown-item.text-warning:focus {
+    background: #fffbeb !important;
+    color: var(--warning) !important;
 }
 

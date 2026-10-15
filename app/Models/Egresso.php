@@ -42,6 +42,13 @@ class Egresso extends Model
         'claimed_at',
         'claimed_ip',
         'claimed_user_agent',
+
+    'is_admin',
+    'empregado',
+    'area_atuacao',
+    'salario_medio',
+    'tempo_insercao',
+    'satisfacao_emprego',
     ];
 
     protected $casts = [

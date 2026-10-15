@@ -153,50 +153,121 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function verificarNumeroProcesso(numero) {
-        const url   = window.APP_ROUTES?.verificarProcesso || '/verificar-processo';
-        const token = window.APP_ROUTES?.csrfToken
-                   || document.querySelector('meta[name="csrf-token"]')?.content
-                   || document.querySelector('input[name="_token"]')?.value;
+function verificarNumeroProcesso(numero) {
+    const url   = window.APP_ROUTES?.verificarProcesso || '/verificar-processo';
+    const token = window.APP_ROUTES?.csrfToken
+               || document.querySelector('meta[name="csrf-token"]')?.content
+               || document.querySelector('input[name="_token"]')?.value;
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token,
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ numero_processo: numero }),
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success && data.reivindicavel) {
-                validationStatus.innerHTML =
-                    '<span style="color:#16a34a;font-size:11px;font-weight:600;">✅ ' +
-                    data.message + '</span>';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ numero_processo: numero }),
+    })
+    .then(async (r) => {
+        // ============================================================
+        // ✅ RATE LIMIT (HTTP 429)
+        // ============================================================
+        if (r.status === 429) {
+            let mensagem = '⏳ Demasiadas tentativas. Aguarde 1 minuto.';
 
-                mostrarPainelReivindicacao(data);
-
-            } else if (data.sugerir_pendente) {
-                validationStatus.innerHTML =
-                    '<span style="color:#d97706;font-size:11px;">⚠️ ' +
-                    data.message + '</span>';
-
-                esconderPainelReivindicacao();
-
-            } else {
-                validationStatus.innerHTML =
-                    '<span style="color:#dc2626;font-size:11px;">❌ ' +
-                    data.message + '</span>';
-
-                esconderPainelReivindicacao();
+            try {
+                const data = await r.json();
+                const minutos = data.retry_after_minutes ?? 1;
+                mensagem = '⏳ ' + (data.message || `Demasiadas tentativas. Aguarde ${minutos} minuto(s).`);
+            } catch {
+                // resposta não é JSON — usa mensagem genérica
             }
-        })
-        .catch(err => {
-            console.error('Erro na verificação:', err);
-            validationStatus.innerHTML = '';
-        });
-    }
+
+            validationStatus.innerHTML =
+                '<span style="color:#d97706;font-size:11px;font-weight:600;">' + mensagem + '</span>';
+
+            // ✅ Limpar a mensagem secundária
+            const helpText = document.getElementById('processo_help');
+            if (helpText) {
+                helpText.textContent = 'Aguarde antes de tentar novamente.';
+                helpText.style.color = '#d97706';
+            }
+
+            esconderPainelReivindicacao();
+            return null;
+        }
+
+        // ============================================================
+        // OUTROS ERROS HTTP (500, 503, etc.)
+        // ============================================================
+        if (!r.ok) {
+            validationStatus.innerHTML =
+                '<span style="color:#dc2626;font-size:11px;">❌ Erro ao verificar. Tente novamente.</span>';
+
+            const helpText = document.getElementById('processo_help');
+            if (helpText) {
+                helpText.textContent = 'Digite o número do seu processo académico';
+                helpText.style.color = '';
+            }
+
+            esconderPainelReivindicacao();
+            return null;
+        }
+
+        // ============================================================
+        // SUCESSO (200)
+        // ============================================================
+        return r.json();
+    })
+    .then(data => {
+        if (!data) return; // Já tratado acima
+
+        // ✅ Restaurar texto original do help quando há sucesso
+        const helpText = document.getElementById('processo_help');
+        if (helpText) {
+            helpText.textContent = 'Digite o número do seu processo académico';
+            helpText.style.color = '';
+        }
+
+        if (data.success && data.reivindicavel) {
+            // ✅ PROCESSO ENCONTRADO
+            validationStatus.innerHTML =
+                '<span style="color:#16a34a;font-size:11px;font-weight:600;">✅ ' +
+                data.message + '</span>';
+
+            mostrarPainelReivindicacao(data);
+
+        } else if (data.sugerir_pendente) {
+            // ⚠️ PROCESSO NÃO EXISTE
+            validationStatus.innerHTML =
+                '<span style="color:#d97706;font-size:11px;">⚠️ ' +
+                data.message + '</span>';
+
+            esconderPainelReivindicacao();
+
+        } else {
+            // ❌ OUTRO CASO (já reivindicado, etc.)
+            validationStatus.innerHTML =
+                '<span style="color:#dc2626;font-size:11px;">❌ ' +
+                data.message + '</span>';
+
+            esconderPainelReivindicacao();
+        }
+    })
+    .catch(err => {
+        console.error('Erro na verificação:', err);
+        validationStatus.innerHTML =
+            '<span style="color:#dc2626;font-size:11px;">❌ Erro ao verificar. Tente novamente.</span>';
+
+        const helpText = document.getElementById('processo_help');
+        if (helpText) {
+            helpText.textContent = 'Digite o número do seu processo académico';
+            helpText.style.color = '';
+        }
+
+        esconderPainelReivindicacao();
+    });
+}
 
     function mostrarPainelReivindicacao(data) {
         if (!reivindicacaoPanel) return;
@@ -289,62 +360,93 @@ document.addEventListener('DOMContentLoaded', function () {
         bloquearCamposReivindicados();
     }
 
-    function bloquearCamposReivindicados() {
-        const readonlyIds = [
-            'numero_processo',
-            'nome_completo',
-            'data_nascimento',
-            'ano_formatura',
-        ];
+function bloquearCamposReivindicados() {
+    const readonlyIds = [
+        'numero_processo',
+        'nome_completo',
+        'data_nascimento',
+        'ano_formatura',
+    ];
 
-        readonlyIds.forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.readOnly = true;
-                input.style.background = '#f0f0f0';
-                input.style.cursor = 'not-allowed';
-            }
-        });
+    readonlyIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.readOnly = true;
+            input.style.background = '#f0f0f0';
+            input.style.cursor = 'not-allowed';
+        }
+    });
 
-        const disabledIds = ['genero', 'curso_id'];
-        disabledIds.forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.disabled = true;
-                input.style.background = '#f0f0f0';
-                input.style.cursor = 'not-allowed';
-            }
-        });
+    const disabledIds = ['genero', 'curso_id'];
+    disabledIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.disabled = true;
+            input.style.background = '#f0f0f0';
+            input.style.cursor = 'not-allowed';
+        }
+    });
+
+    // ✅ Email FICA EDITÁVEL — adiciona nota visual (só uma vez)
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.readOnly = false;
+        emailInput.style.background = '';
+        emailInput.style.cursor = 'text';
+
+        const helpEmailId = 'email_help_reivindicacao';
+        let helpEmail = document.getElementById(helpEmailId);
+
+        if (!helpEmail) {
+            helpEmail = document.createElement('small');
+            helpEmail.id = helpEmailId;
+            helpEmail.style.color = '#d97706';
+            helpEmail.style.fontSize = '11px';
+            helpEmail.style.display = 'block';
+            helpEmail.style.marginTop = '4px';
+            helpEmail.textContent = '💡 Pode manter este email ou alterá-lo para outro que use atualmente.';
+
+            emailInput.parentNode.appendChild(helpEmail);
+        }
     }
+}
 
-    function limparCamposReivindicados() {
-        const campos = [
-            'nome_completo',
-            'email',
-            'telefone',
-            'data_nascimento',
-            'ano_formatura',
-        ];
 
-        campos.forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.value = '';
-                input.readOnly = false;
-                input.style.background = '';
-                input.style.cursor = '';
-            }
-        });
+function limparCamposReivindicados() {
+    const campos = [
+        'nome_completo',
+        'email',
+        'telefone',
+        'data_nascimento',
+        'ano_formatura',
+    ];
 
-        const selects = ['genero', 'curso_id'];
-        selects.forEach(id => {
-            const sel = document.getElementById(id);
-            if (sel) {
-                sel.value = '';
-                sel.disabled = false;
-                sel.style.background = '';
-                sel.style.cursor = '';
-            }
-        });
+    campos.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.value = '';
+            input.readOnly = false;
+            input.style.background = '';
+            input.style.cursor = '';
+        }
+    });
+
+    const selects = ['genero', 'curso_id'];
+    selects.forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel) {
+            sel.value = '';
+            sel.disabled = false;
+            sel.style.background = '';
+            sel.style.cursor = '';
+        }
+    });
+
+    // ✅ Remover a nota do email
+    const helpEmail = document.getElementById('email_help_reivindicacao');
+    if (helpEmail) {
+        helpEmail.remove();
     }
+}
+
 });

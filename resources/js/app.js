@@ -2201,13 +2201,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const canvasAprovacao = document.getElementById('graficoAprovacao');
+       const canvasAprovacao = document.getElementById('graficoAprovacao');
     if (canvasAprovacao && typeof Chart !== 'undefined') {
-        let dados = {};
-        try { dados = JSON.parse(canvasAprovacao.dataset.dados || '{}'); } catch (err) {}
-        const aprovadas = dados.aprovadas || 0;
-        const total = dados.total || 0;
-        const taxa = dados.taxa || 0;
+        const aprovadas = parseInt(canvasAprovacao.dataset.aprovadas) || 0;
+        const total     = parseInt(canvasAprovacao.dataset.total) || 0;
+        const taxa      = parseFloat(canvasAprovacao.dataset.taxa) || 0;
         const restantes = Math.max(0, total - aprovadas);
         new Chart(canvasAprovacao, {
             type: 'doughnut',

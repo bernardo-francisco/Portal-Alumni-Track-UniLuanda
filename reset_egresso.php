@@ -6,7 +6,7 @@ $app = require_once __DIR__ . '/bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 // Resetar o egresso
-$e = \App\Models\Egresso::where('numero_processo', '20211519')->first();
+$e = \App\Models\Egresso::where('numero_processo', '99999999')->first();
 
 if ($e) {
     $e->update([

@@ -25,9 +25,7 @@
                         <i class="fas fa-calendar-day me-1"></i>
                         {{ date('d/m/Y H:i') }}
                     </span>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="location.reload()">
-                        <i class="fas fa-sync-alt me-1"></i> Atualizar
-                    </button>
+                   
                 </div>
             </div>
         </div>

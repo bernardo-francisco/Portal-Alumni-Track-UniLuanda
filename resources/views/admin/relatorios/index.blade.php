@@ -500,6 +500,14 @@
             'excel'  => route('admin.relatorios.excel.empresas'),
         ],
         [
+            'titulo' => 'Auditoria',
+            'icone'  => 'fa-shield-alt',
+            'cor'    => 'dark',
+            'desc'   => 'Actividades dos administradores',
+            'pdf'    => route('admin.relatorios.pdf.auditoria'),
+            'excel'  => route('admin.relatorios.excel.auditoria'),
+        ],
+        [
             'titulo' => 'Completo',
             'icone'  => 'fa-file-alt',
             'cor'    => 'dark',

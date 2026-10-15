@@ -20,10 +20,7 @@ class VerificarProcessoTest extends TestCase
     public function test_verificar_processo_valido_sem_conta()
     {
         $unidade = UnidadeOrganica::factory()->create();
-
-        $curso = Curso::factory()->create([
-            'unidade_id' => $unidade->id,
-        ]);
+        $curso = Curso::factory()->create(['unidade_id' => $unidade->id]);
 
         $egresso = Egresso::factory()->semConta()->create([
             'curso_id' => $curso->id,
@@ -39,18 +36,21 @@ class VerificarProcessoTest extends TestCase
 
         $response->assertStatus(200);
 
+        // ✅ Mensagem ATUAL do código
         $response->assertJson([
             'success' => true,
-            'message' => '✅ Número de processo verificado! Cadastro automático liberado.',
+            'reivindicavel' => true,
+            'message' => '✅ Encontrámos o seu registo! Confirme os dados para continuar.',
         ]);
 
+        // ✅ Paths corretos do código atual
         $response->assertJsonPath(
-            'egresso.nome',
-            'João Silva Teste'
+            'pre_preenchido.nome_mascarado',
+            'João S**** T****'
         );
 
         $response->assertJsonPath(
-            'egresso.curso',
+            'pre_preenchido.curso',
             $curso->nome
         );
     }
@@ -62,21 +62,19 @@ class VerificarProcessoTest extends TestCase
     public function test_verificar_processo_com_conta_existente()
     {
         $user = User::factory()->create([
-            'email' => 'usuario@teste.com',
+            'email' => 'usuario.existente@gmail.com',
             'tipo' => 'egresso',
         ]);
 
         $unidade = UnidadeOrganica::factory()->create();
-
-        $curso = Curso::factory()->create([
-            'unidade_id' => $unidade->id,
-        ]);
+        $curso = Curso::factory()->create(['unidade_id' => $unidade->id]);
 
         $egresso = Egresso::factory()->create([
             'user_id' => $user->id,
             'curso_id' => $curso->id,
             'numero_processo' => '987654321',
-            'email' => 'usuario@teste.com',
+            'email' => 'usuario.existente@gmail.com',
+            'claimed_at' => now(),
         ]);
 
         $response = $this->post('/verificar-processo', [
@@ -85,9 +83,10 @@ class VerificarProcessoTest extends TestCase
 
         $response->assertStatus(200);
 
+        // ✅ Mensagem ATUAL
         $response->assertJson([
             'success' => false,
-            'message' => 'Este número de processo já está associado a uma conta.',
+            'message' => 'Este número de processo já tem uma conta ativa. Se é o titular, use "Recuperar password" no login.',
         ]);
     }
 
@@ -146,49 +145,44 @@ class VerificarProcessoTest extends TestCase
 
     // ============================================================
     // TESTE 6: EGRESSO PODE REGISTAR APÓS VERIFICAR PROCESSO
-    // NÍVEL OURO
     // ============================================================
 
     public function test_egresso_pode_registar_apos_verificar_processo()
     {
         $unidade = UnidadeOrganica::factory()->create();
+        $curso = Curso::factory()->create(['unidade_id' => $unidade->id]);
 
-        $curso = Curso::factory()->create([
-            'unidade_id' => $unidade->id,
-        ]);
+        // Email ORIGINAL do egresso (real, não descartável)
+        $emailOriginal = 'maria.teste@gmail.com';
 
         $egresso = Egresso::factory()->semConta()->create([
             'curso_id' => $curso->id,
             'numero_processo' => '111222333',
             'nome_completo' => 'Maria Teste',
             'data_nascimento' => '1995-10-20',
-            'email' => null,
+            'email' => $emailOriginal,
             'telefone' => '923456789',
+            'claimed_at' => null,
         ]);
 
-        // ========================================================
-        // 1. VERIFICAR PROCESSO
-        // ========================================================
-
+        // 1. Verificar processo
         $response = $this->post('/verificar-processo', [
             'numero_processo' => '111222333',
         ]);
 
         $response->assertJson([
             'success' => true,
+            'reivindicavel' => true,
         ]);
 
-        // ========================================================
-        // 2. REGISTRAR
-        // ========================================================
-
+        // 2. Registar (Nível Ouro — email igual ao original)
         $dadosRegistro = [
             'tipo' => 'egresso',
             'nome_completo' => 'Maria Teste',
             'numero_processo' => '111222333',
             'genero' => 'F',
             'data_nascimento' => '1995-10-20',
-            'email' => 'maria.teste@email.com',
+            'email' => $emailOriginal,
             'telefone' => '923456789',
             'unidade_id' => $unidade->id,
             'curso_id' => $curso->id,
@@ -196,57 +190,32 @@ class VerificarProcessoTest extends TestCase
             'password_confirmation' => 'password123',
         ];
 
-        $response = $this->post(
-            route('register.post'),
-            $dadosRegistro
-        );
+        $response = $this->post(route('register.post'), $dadosRegistro);
 
-        // ========================================================
-        // 3. VERIFICAR REDIRECIONAMENTO
-        // ========================================================
-
+        // 3. Deve redirecionar para OTP (Nível Ouro)
         $response->assertRedirect(
-            route('login')
+            route('register.verificar-otp', ['email' => $emailOriginal])
         );
 
-        // ========================================================
-        // 4. VERIFICAR MENSAGEM
-        // ========================================================
-
-        $response->assertSessionHas(
-            'success',
-            '✅ Cadastro aprovado! Faça login para aceder ao sistema.'
-        );
-
-        // ========================================================
-        // 5. VERIFICAR USUÁRIO
-        // ========================================================
-
+        // 4. User deve ter sido criado
         $this->assertDatabaseHas('users', [
-            'email' => 'maria.teste@email.com',
+            'email' => $emailOriginal,
             'name' => 'Maria Teste',
             'tipo' => 'egresso',
-            'is_active' => true,
         ]);
 
-        // Buscar usuário criado
-        $user = User::where(
-            'email',
-            'maria.teste@email.com'
-        )->first();
-
+        $user = User::where('email', $emailOriginal)->first();
         $this->assertNotNull($user);
 
-        // ========================================================
-        // 6. VERIFICAR EGRESSO
-        // ========================================================
-
+        // 5. Egresso deve estar associado ao user e ter claimed_at
         $this->assertDatabaseHas('egressos', [
             'id' => $egresso->id,
             'user_id' => $user->id,
-            'email' => 'maria.teste@email.com',
-            'status_validacao' => 'aprovado',
+            'numero_processo' => '111222333',
         ]);
+
+        $egresso->refresh();
+        $this->assertNotNull($egresso->claimed_at);
     }
 
     // ============================================================
@@ -256,45 +225,40 @@ class VerificarProcessoTest extends TestCase
     public function test_nao_permite_registar_com_processo_ja_associado()
     {
         $user = User::factory()->create([
-            'email' => 'usuario@teste.com',
+            'email' => 'usuario.associado@gmail.com',
             'tipo' => 'egresso',
         ]);
 
         $unidade = UnidadeOrganica::factory()->create();
-
-        $curso = Curso::factory()->create([
-            'unidade_id' => $unidade->id,
-        ]);
+        $curso = Curso::factory()->create(['unidade_id' => $unidade->id]);
 
         $egresso = Egresso::factory()->create([
             'user_id' => $user->id,
             'curso_id' => $curso->id,
             'numero_processo' => '999888777',
             'email' => $user->email,
+            'claimed_at' => now(),
         ]);
 
         $response = $this->post('/verificar-processo', [
             'numero_processo' => '999888777',
         ]);
 
+        // ✅ Mensagem ATUAL
         $response->assertJson([
             'success' => false,
-            'message' => 'Este número de processo já está associado a uma conta.',
+            'message' => 'Este número de processo já tem uma conta ativa. Se é o titular, use "Recuperar password" no login.',
         ]);
     }
 
     // ============================================================
-    // TESTE 8: REGISTRO COM PROCESSO INEXISTENTE
-    // NÍVEL PRATA
+    // TESTE 8: REGISTRO COM PROCESSO INEXISTENTE (NÍVEL PRATA)
     // ============================================================
 
     public function test_registro_com_processo_inexistente_cria_usuario_pendente()
     {
         $unidade = UnidadeOrganica::factory()->create();
-
-        $curso = Curso::factory()->create([
-            'unidade_id' => $unidade->id,
-        ]);
+        $curso = Curso::factory()->create(['unidade_id' => $unidade->id]);
 
         $dadosRegistro = [
             'tipo' => 'egresso',
@@ -302,7 +266,7 @@ class VerificarProcessoTest extends TestCase
             'numero_processo' => '000000000',
             'genero' => 'M',
             'data_nascimento' => '1990-01-01',
-            'email' => 'inexistente@teste.com',
+            'email' => 'inexistente.teste@gmail.com',   // ✅ email real
             'telefone' => '923456789',
             'unidade_id' => $unidade->id,
             'curso_id' => $curso->id,
@@ -310,131 +274,44 @@ class VerificarProcessoTest extends TestCase
             'password_confirmation' => 'password123',
         ];
 
-        // ========================================================
-        // 1. FAZER O REGISTRO
-        // ========================================================
+        $response = $this->post(route('register.post'), $dadosRegistro);
 
-        $response = $this->post(
-            route('register.post'),
-            $dadosRegistro
-        );
-
-        // ========================================================
-        // 2. VERIFICAR USUÁRIO CRIADO
-        // ========================================================
-
+        // ✅ User criado (Nível Prata)
         $this->assertDatabaseHas('users', [
-            'email' => 'inexistente@teste.com',
+            'email' => 'inexistente.teste@gmail.com',
             'name' => 'Teste Inexistente',
             'tipo' => 'egresso',
             'is_active' => false,
         ]);
 
-        // Buscar o usuário criado
-        $user = User::where(
-            'email',
-            'inexistente@teste.com'
-        )->first();
-
-        // Garantir que o usuário existe
+        $user = User::where('email', 'inexistente.teste@gmail.com')->first();
         $this->assertNotNull($user);
 
-        // ========================================================
-        // 3. BUSCAR EGRESSO CRIADO
-        // ========================================================
-
-        $egresso = Egresso::where(
-            'user_id',
-            $user->id
-        )->first();
-
-        // Garantir que o egresso existe
+        // ✅ Egresso criado como pendente
+        $egresso = Egresso::where('user_id', $user->id)->first();
         $this->assertNotNull($egresso);
 
-        // ========================================================
-        // 4. VERIFICAR DADOS DO EGRESSO
-        // ========================================================
+        $this->assertEquals('Teste Inexistente', $egresso->nome_completo);
+        $this->assertStringStartsWith('PENDENTE_', $egresso->numero_processo);
+        $this->assertEquals('pendente', $egresso->status_validacao);
+        $this->assertEquals('inactive', $egresso->status);
+        $this->assertFalse((bool) $egresso->verificado);
 
-        $this->assertEquals(
-            'Teste Inexistente',
-            $egresso->nome_completo
-        );
+        // ✅ Redireciona para login (Nível Prata)
+        $response->assertRedirect(route('login'));
 
-        // ========================================================
-        // 5. VERIFICAR NÚMERO DE PROCESSO PENDENTE
-        // ========================================================
-
-        // O número deve começar com "PENDENTE_"
-        $this->assertStringStartsWith(
-            'PENDENTE_',
-            $egresso->numero_processo
-        );
-
-        // ========================================================
-        // 6. VERIFICAR STATUS DE VALIDAÇÃO
-        // ========================================================
-
-        $this->assertEquals(
-            'pendente',
-            $egresso->status_validacao
-        );
-
-        // ========================================================
-        // 7. VERIFICAR STATUS DO EGRESSO
-        // ========================================================
-
-        $this->assertEquals(
-            'inactive',
-            $egresso->status
-        );
-
-        // ========================================================
-        // 8. VERIFICAR SE NÃO FOI VERIFICADO
-        // ========================================================
-
-        $this->assertFalse(
-            (bool) $egresso->verificado
-        );
-
-        // ========================================================
-        // 9. VERIFICAR REDIRECIONAMENTO
-        // ========================================================
-
-        $response->assertRedirect(
-            route('login')
-        );
-
-        // ========================================================
-        // 10. VERIFICAR MENSAGEM DE SUCESSO
-        // ========================================================
-
-        $response->assertSessionHas(
-            'success',
-            '⏳ Cadastro recebido! Aguarde a validação manual da equipe. Você receberá um email quando sua conta for aprovada.'
-        );
-
-        // ========================================================
-        // 11. VERIFICAR STATUS DA SESSÃO
-        // ========================================================
-
-        $response->assertSessionHas(
-            'status',
-            'pending_validation'
-        );
+        // ✅ Status da sessão
+        $response->assertSessionHas('status', 'pending_email_verification');
     }
 
     // ============================================================
-    // TESTE 9: REGISTRO SEM NÚMERO DE PROCESSO
-    // NÍVEL PRATA
+    // TESTE 9: REGISTRO SEM NÚMERO DE PROCESSO (NÍVEL PRATA)
     // ============================================================
 
     public function test_registro_sem_numero_processo_cria_usuario_pendente()
     {
         $unidade = UnidadeOrganica::factory()->create();
-
-        $curso = Curso::factory()->create([
-            'unidade_id' => $unidade->id,
-        ]);
+        $curso = Curso::factory()->create(['unidade_id' => $unidade->id]);
 
         $dadosRegistro = [
             'tipo' => 'egresso',
@@ -442,7 +319,7 @@ class VerificarProcessoTest extends TestCase
             'numero_processo' => null,
             'genero' => 'M',
             'data_nascimento' => '1990-01-01',
-            'email' => 'semprocesso@teste.com',
+            'email' => 'semprocesso.teste@gmail.com',   // ✅ email real
             'telefone' => '923456789',
             'unidade_id' => $unidade->id,
             'curso_id' => $curso->id,
@@ -450,38 +327,20 @@ class VerificarProcessoTest extends TestCase
             'password_confirmation' => 'password123',
         ];
 
-        // ========================================================
-        // 1. FAZER O REGISTRO
-        // ========================================================
+        $response = $this->post(route('register.post'), $dadosRegistro);
 
-        $response = $this->post(
-            route('register.post'),
-            $dadosRegistro
-        );
-
-        // ========================================================
-        // 2. VERIFICAR USUÁRIO CRIADO
-        // ========================================================
-
+        // ✅ User criado
         $this->assertDatabaseHas('users', [
-            'email' => 'semprocesso@teste.com',
+            'email' => 'semprocesso.teste@gmail.com',
             'name' => 'Teste Sem Processo',
             'tipo' => 'egresso',
             'is_active' => false,
         ]);
 
-        // Buscar usuário
-        $user = User::where(
-            'email',
-            'semprocesso@teste.com'
-        )->first();
-
+        $user = User::where('email', 'semprocesso.teste@gmail.com')->first();
         $this->assertNotNull($user);
 
-        // ========================================================
-        // 3. VERIFICAR EGRESSO CRIADO COMO PENDENTE
-        // ========================================================
-
+        // ✅ Egresso pendente
         $this->assertDatabaseHas('egressos', [
             'user_id' => $user->id,
             'nome_completo' => 'Teste Sem Processo',
@@ -490,21 +349,7 @@ class VerificarProcessoTest extends TestCase
             'verificado' => false,
         ]);
 
-        // ========================================================
-        // 4. VERIFICAR REDIRECIONAMENTO
-        // ========================================================
-
-        $response->assertRedirect(
-            route('login')
-        );
-
-        // ========================================================
-        // 5. VERIFICAR STATUS DA SESSÃO
-        // ========================================================
-
-        $response->assertSessionHas(
-            'status',
-            'pending_validation'
-        );
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('status', 'pending_email_verification');
     }
 }

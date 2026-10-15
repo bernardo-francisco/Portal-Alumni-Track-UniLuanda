@@ -5,6 +5,7 @@
 @section('page_title', '👤 Perfil do Egresso')
 @section('page_subtitle', $egresso->nome_completo)
 
+
 @section('content')
 
 @php
@@ -137,9 +138,7 @@
                     </ul>
                 </div>
 
-                <a href="{{ route('admin.egressos.index') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
+                
             </div>
 
         </div>
@@ -158,7 +157,7 @@
                 <i class="fas fa-graduation-cap"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-value" style="font-size: 1rem;">
+                <div class="stat-value stat-value-text" title="{{ $egresso->curso->nome ?? 'Não definido' }}">
                     {{ $egresso->curso->nome ?? 'Não definido' }}
                 </div>
                 <div class="stat-label">Curso</div>
@@ -172,7 +171,7 @@
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-value" style="font-size: 1rem;">
+                <div class="stat-value stat-value-text" title="{{ $egresso->ano_formatura ?? 'Não definido' }}">
                     {{ $egresso->ano_formatura ?? 'Não definido' }}
                 </div>
                 <div class="stat-label">Ano de Formatura</div>
@@ -186,7 +185,7 @@
                 <i class="fas fa-map-marker-alt"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-value" style="font-size: 1rem;">
+                <div class="stat-value stat-value-text" title="{{ $localizacao->cidade ?? 'Não definida' }}">
                     {{ $localizacao->cidade ?? 'Não definida' }}
                 </div>
                 <div class="stat-label">Cidade Atual</div>
@@ -200,7 +199,7 @@
                 <i class="fas fa-briefcase"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-value" style="font-size: 1rem;">
+                <div class="stat-value stat-value-text" title="{{ $profissional->cargo ?? 'Não definido' }}">
                     {{ $profissional->cargo ?? 'Não definido' }}
                 </div>
                 <div class="stat-label">Cargo Atual</div>

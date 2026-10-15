@@ -652,7 +652,7 @@
                                        value="{{ old('empresa_nome') }}"
                                        placeholder="Ex: TechAngola Lda.">
                             </div>
-                            <small class="text-muted">Nome oficial da empresa</small>
+                           
                         </div>
 
                         <div class="field-group">
@@ -717,7 +717,7 @@
                             <div class="field">
                                 <input id="empresa_logo" name="empresa_logo" type="file" accept="image/*">
                             </div>
-                            <small class="text-muted">JPG, PNG ou JPEG. Máx: 2MB</small>
+                            
                         </div>
 
                         {{-- Descrição da Empresa — CENTRADO --}}
@@ -747,7 +747,7 @@
                                placeholder="Ex: José Manuel Fernandes"
                                autocomplete="name">
                     </div>
-                    <small class="text-muted" id="nome_help">Digite o seu nome completo</small>
+                    
                 </div>
 
                 <div class="field-group span-2">
@@ -758,7 +758,7 @@
                                placeholder="seuemail@dominio.com"
                                autocomplete="email" required>
                     </div>
-                    <small class="text-muted">Usaremos este email para contacto</small>
+                  
                 </div>
 
                 {{-- Telefone — dinâmico (só centra em Empresa) --}}
@@ -770,7 +770,7 @@
                                placeholder="Ex: 923456789"
                                autocomplete="tel">
                     </div>
-                    <small class="text-muted">Número com DDD</small>
+                    
                 </div>
 
                 <div class="field-group span-2" id="group_foto">
@@ -778,7 +778,7 @@
                     <div class="field">
                         <input id="foto" name="foto" type="file" accept="image/*">
                     </div>
-                    <small class="text-muted">JPG, PNG ou JPEG. Máx: 2MB</small>
+                    
                 </div>
 
                 {{-- ============================================================
@@ -807,7 +807,7 @@
                             @endif
                         </select>
                     </div>
-                    <small class="text-muted">Unidade onde o administrador está vinculado (opcional)</small>
+                    
                 </div>
 
                 {{-- ============================================================
@@ -823,7 +823,7 @@
                                placeholder="Ex: 20201234">
                     </div>
                     <div id="validationStatus" class="validation-status"></div>
-                    <small class="text-muted" id="processo_help">Digite o número do seu processo académico</small>
+                    
                 </div>
 
                 {{-- ============================================================
@@ -890,7 +890,7 @@
                             @endif
                         </select>
                     </div>
-                    <small class="text-muted" id="curso_help">Selecione o curso em que se formou</small>
+                    
                 </div>
 
             <div class="field-group" id="group_ano_formatura" style="display: none;">

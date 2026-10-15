@@ -44,6 +44,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware) {
 
+        // ============================================================
+        // ✅ NOVO — Auditoria automática de acções de admins
+        // ============================================================
+        // Regista automaticamente todas as acções POST/PUT/PATCH/DELETE
+        // realizadas por administradores autenticados.
+        // ============================================================
+        $middleware->web(append: [
+            \App\Http\Middleware\AuditarAcoesAdmin::class,
+        ]);
+
+        // ============================================================
+        // ALIASES
+        // ============================================================
         $middleware->alias([
 
             'auth' => \App\Http\Middleware\Authenticate::class,
@@ -76,7 +89,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
 
-            'empresa.aprovada' => \App\Http\Middleware\EmpresaAprovada::class,   // ✅ Movido para aqui
+            'empresa.aprovada' => \App\Http\Middleware\EmpresaAprovada::class,
         ]);
     })
 
