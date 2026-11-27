@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware) {
 
+        // ✅ Confiar no proxy do Railway (resolve o erro 419)
+        $middleware->trustProxies(at: '*');
+
         // ✅ O teu sistema de auditoria (MANTÉM!)
         $middleware->web(append: [
             \App\Http\Middleware\AuditarAcoesAdmin::class,
