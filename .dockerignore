@@ -1,0 +1,20 @@
+# Ignorar dependências do Node e ficheiros relacionados
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Ignorar ficheiros de ambiente locais (segurança)
+.env
+.env.*
+!.env.example
+
+# Ignorar ficheiros do Git
+.git
+.gitignore
+
+# Ignorar pastas de build locais
+public/build
+storage/logs/*
+!storage/logs/.gitignore
