@@ -7,7 +7,7 @@
 # - Arranca 3 tuneis Cloudflared
 # - Extrai os 3 URLs automaticamente
 # - Atualiza o .env
-# - Rebuild
+# - Migrations + limpeza de cache + rebuild (com verificação de erros)
 # - Abre o browser
 # ============================================================
 
@@ -168,6 +168,8 @@ Write-Host "    ✅ Reverb:  $urlReverb" -ForegroundColor Green
 Write-Host "    ✅ Peer:    $urlPeer" -ForegroundColor Green
 
 # ─── 5. Atualizar .env ──────────────────────────────────────
+# (só toca em APP_URL, PEER_HOST, REVERB_HOST e VITE_REVERB_HOST;
+#  as linhas TURN_* e restantes ficam intactas)
 Write-Host "[5/7] A atualizar o .env..." -ForegroundColor Yellow
 
 $hostReverb = $urlReverb -replace '^https://', ''
@@ -184,16 +186,31 @@ $conteudo = $conteudo -replace '(?m)^VITE_REVERB_HOST=.*$',  "VITE_REVERB_HOST=$
 Set-Content $envFile -Value $conteudo -Encoding UTF8
 Write-Host "    ✅ .env atualizado" -ForegroundColor Green
 
-# ─── 6. Limpar cache + rebuild ──────────────────────────────
-Write-Host "[6/7] A limpar cache e rebuild..." -ForegroundColor Yellow
+# ─── 6. Migrations + limpar cache + rebuild ─────────────────
+Write-Host "[6/7] A correr migrations, limpar cache e rebuild..." -ForegroundColor Yellow
 
 Set-Location $projeto
+
+# Migrations (a coluna ultimo_ping_em é necessária para as chamadas)
+php artisan migrate --force
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "    ❌ Migration falhou. Verifica se o MySQL (XAMPP) está ligado." -ForegroundColor Red
+    exit 1
+}
+Write-Host "    ✅ Migrations OK" -ForegroundColor Green
+
 php artisan config:clear   | Out-Null
 php artisan optimize:clear | Out-Null
 php artisan view:clear     | Out-Null
 Remove-Item "public\build" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item "public\hot"   -Force -ErrorAction SilentlyContinue   # ⬅️ NOVO
-npm run build | Out-Null
+
+$saida = npm run build 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "    ❌ npm run build falhou:" -ForegroundColor Red
+    $saida | Select-Object -Last 20
+    exit 1
+}
 
 Write-Host "    ✅ Rebuild concluído" -ForegroundColor Green
 

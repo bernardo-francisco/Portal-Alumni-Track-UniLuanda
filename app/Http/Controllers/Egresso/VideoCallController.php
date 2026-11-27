@@ -36,11 +36,32 @@ class VideoCallController extends Controller
             'type'           => 'required|in:video,audio',
         ]);
 
-        // Limpar chamadas antigas (> 2 min)
-        Chamada::whereIn('status', ['pendente', 'aceite'])
+        // ------------------------------------------------------------
+        // Limpar chamadas órfãs
+        // ------------------------------------------------------------
+
+        // Pendentes que ninguém atendeu há mais de 2 min
+        Chamada::where('status', 'pendente')
             ->where('created_at', '<', now()->subMinutes(2))
             ->update([
                 'status'       => 'perdida',
+                'terminada_em' => now(),
+            ]);
+
+        // Aceites sem sinal de vida (os dois lados desapareceram).
+        // O sinal de vida é gravado em estado() -> ultimo_ping_em.
+        // Chamadas aceites sem nenhum ping só são limpas passados 2 min
+        // desde o aceite (clientes antigos / primeiros segundos).
+        Chamada::where('status', 'aceite')
+            ->where(function ($q) {
+                $q->where('ultimo_ping_em', '<', now()->subSeconds(60))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNull('ultimo_ping_em')
+                         ->where('aceite_em', '<', now()->subMinutes(2));
+                  });
+            })
+            ->update([
+                'status'       => 'terminada',
                 'terminada_em' => now(),
             ]);
 
@@ -378,6 +399,8 @@ class VideoCallController extends Controller
      * ============================================================
      * ESTADO + SIGNALING
      * ============================================================
+     * Também funciona como "sinal de vida" da chamada: enquanto
+     * estiver aceite, cada consulta atualiza ultimo_ping_em.
      */
     public function estado(Request $request)
     {
@@ -409,6 +432,11 @@ class VideoCallController extends Controller
                 'success' => false,
                 'message' => 'Não autorizado.',
             ], 403);
+        }
+
+        // Sinal de vida (query direta: não depende de $fillable)
+        if ($chamada->status === 'aceite') {
+            Chamada::whereKey($chamada->id)->update(['ultimo_ping_em' => now()]);
         }
 
         return response()->json([
@@ -501,13 +529,54 @@ class VideoCallController extends Controller
             return response()->json(['success' => false], 404);
         }
 
-        $campo = (int) $chamada->chamador_id === (int) $egresso->id
-            ? 'peer_id_chamador'
-            : 'peer_id_recetor';
+        $isChamador = (int) $chamada->chamador_id === (int) $egresso->id;
+        $isRecetor  = (int) $chamada->recetor_id  === (int) $egresso->id;
+
+        // Só os dois participantes podem registar o seu Peer ID
+        if (!$isChamador && !$isRecetor) {
+            return response()->json(['success' => false], 403);
+        }
+
+        $campo = $isChamador ? 'peer_id_chamador' : 'peer_id_recetor';
 
         $chamada->update([$campo => $request->peer_id]);
 
         return response()->json(['success' => true, 'campo' => $campo]);
+    }
+
+    /**
+     * ============================================================
+     * ICE SERVERS (STUN / TURN)
+     * ============================================================
+     * Devolve a lista de servidores ICE ao browser, para as
+     * credenciais TURN não ficarem escritas no JavaScript.
+     */
+    public function iceServers()
+    {
+        $servers = [
+            [
+                'urls' => [
+                    'stun:stun.l.google.com:19302',
+                    'stun:stun1.l.google.com:19302',
+                    'stun:stun2.l.google.com:19302',
+                ],
+            ],
+        ];
+
+        $urls = array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) config('services.turn.urls'))
+        )));
+
+        if ($urls && config('services.turn.username')) {
+            $servers[] = [
+                'urls'       => $urls,
+                'username'   => config('services.turn.username'),
+                'credential' => config('services.turn.credential'),
+            ];
+        }
+
+        return response()->json(['iceServers' => $servers]);
     }
 
     /**

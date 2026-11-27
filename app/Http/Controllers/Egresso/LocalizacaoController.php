@@ -24,10 +24,6 @@ class LocalizacaoController extends Controller
 
         $query = $egresso->localizacoes();
 
-        // ============================================================
-        // FILTROS
-        // ============================================================
-
         // 🔍 Filtro por País
         if ($request->filled('pais')) {
             $query->where('pais', 'LIKE', '%' . $request->pais . '%');
@@ -51,7 +47,7 @@ class LocalizacaoController extends Controller
         if ($request->filled('periodo')) {
             $periodo = $request->periodo;
             $now = now();
-            
+
             if ($periodo == '7d') {
                 $query->where('data_desde', '>=', $now->copy()->subDays(7));
             } elseif ($periodo == '30d') {
@@ -64,10 +60,6 @@ class LocalizacaoController extends Controller
                 $query->whereYear('data_desde', 2025);
             }
         }
-
-        // ============================================================
-        // RESULTADOS
-        // ============================================================
 
         $localizacoes = $query->orderBy('is_current', 'desc')
                               ->orderBy('data_desde', 'desc')
@@ -83,7 +75,10 @@ class LocalizacaoController extends Controller
      */
     public function create()
     {
-        return view('egresso.localizacao.create');
+        return view('egresso.localizacao.create', [
+            'googleApiKey' => config('services.google_maps.key') ?? env('GOOGLE_MAPS_API_KEY'),
+            'googleMapId'  => env('GOOGLE_MAPS_MAP_ID'),
+        ]);
     }
 
     /**
@@ -112,7 +107,6 @@ class LocalizacaoController extends Controller
         try {
             DB::beginTransaction();
 
-            // Se for atual, desativar outros
             if ($request->has('is_current')) {
                 Localizacao::where('egresso_id', $egresso->id)->update(['is_current' => false]);
             }
@@ -131,7 +125,6 @@ class LocalizacaoController extends Controller
 
             DB::commit();
 
-            // 🔔 NOTIFICAÇÃO: Localização atualizada
             $egresso->notificar(
                 '📍 Localização atualizada',
                 'Sua localização foi atualizada para ' . $validated['pais'] . ($validated['cidade'] ? ', ' . $validated['cidade'] : ''),
@@ -164,7 +157,11 @@ class LocalizacaoController extends Controller
             return redirect()->route('egresso.localizacao')->with('error', 'Não autorizado.');
         }
 
-        return view('egresso.localizacao.edit', compact('localizacao'));
+        return view('egresso.localizacao.edit', [
+            'localizacao'  => $localizacao,
+            'googleApiKey' => config('services.google_maps.key') ?? env('GOOGLE_MAPS_API_KEY'),
+            'googleMapId'  => env('GOOGLE_MAPS_MAP_ID'),
+        ]);
     }
 
     /**
@@ -197,7 +194,6 @@ class LocalizacaoController extends Controller
         try {
             DB::beginTransaction();
 
-            // Se for atual, desativar outros
             if ($request->has('is_current')) {
                 Localizacao::where('egresso_id', $egresso->id)
                     ->where('id', '!=', $localizacao->id)
@@ -208,7 +204,6 @@ class LocalizacaoController extends Controller
 
             DB::commit();
 
-            // 🔔 NOTIFICAÇÃO: Localização atualizada
             $egresso->notificar(
                 '📍 Localização atualizada',
                 'Sua localização foi atualizada para ' . $validated['pais'] . ($validated['cidade'] ? ', ' . $validated['cidade'] : ''),
@@ -244,7 +239,6 @@ class LocalizacaoController extends Controller
         try {
             $localizacao->delete();
 
-            // 🔔 NOTIFICAÇÃO: Localização removida
             $egresso->notificar(
                 '🗑️ Localização removida',
                 'Sua localização foi removida do sistema.',

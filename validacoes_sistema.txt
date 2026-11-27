@@ -1,0 +1,607 @@
+﻿
+app\Http\Controllers\Admin\AdminEmpresaController.php:79:            'motivo_reprovacao' => 
+'required|string|max:500',
+app\Http\Controllers\Admin\CandidaturaController.php:69:            'status' => 
+'required|in:pendente,em_analise,entrevista,aprovado,rejeitado',
+app\Http\Controllers\Admin\CandidaturaController.php:134:            'data_entrevista'  => 
+'required|date|after:now',
+app\Http\Controllers\Admin\CandidaturaController.php:135:            'local_entrevista' => 
+'required|string|max:255',
+app\Http\Controllers\Admin\CandidaturaController.php:191:            'motivo_rejeicao' => 
+'required|string|max:1000',
+app\Http\Controllers\Admin\ContactoAlumniController.php:64:            'resposta' => 
+'required|string|max:2000',
+app\Http\Controllers\Admin\CursoController.php:85:            'unidade_id' => 
+'required|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\CursoController.php:86:            'nome' => 
+'required|string|max:150',
+app\Http\Controllers\Admin\CursoController.php:87:            'codigo' => 
+'required|string|max:20|unique:cursos',
+app\Http\Controllers\Admin\CursoController.php:88:            'departamento' => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\CursoController.php:89:            'duracao' => 
+'nullable|integer|min:1|max:10',
+app\Http\Controllers\Admin\CursoController.php:107:            'unidade_id' => 
+'required|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\CursoController.php:108:            'nome' => 
+'required|string|max:150',
+app\Http\Controllers\Admin\CursoController.php:109:            'codigo' => 
+'required|string|max:20|unique:cursos,codigo,' . $curso->id,
+app\Http\Controllers\Admin\CursoController.php:110:            'departamento' => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\CursoController.php:111:            'duracao' => 
+'nullable|integer|min:1|max:10',
+app\Http\Controllers\Admin\EgressoController.php:141:            'numero_processo' => 
+'required|string|max:50|unique:egressos,numero_processo',
+app\Http\Controllers\Admin\EgressoController.php:142:            'nome_completo'   => 
+'required|string|max:255',
+app\Http\Controllers\Admin\EgressoController.php:143:            'genero'          => 
+'required|in:M,F,O',
+app\Http\Controllers\Admin\EgressoController.php:144:            'email'           => 
+'nullable|email|max:255',
+app\Http\Controllers\Admin\EgressoController.php:145:            'foto'            => 
+'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+app\Http\Controllers\Admin\EgressoController.php:146:            'unidade_id'      => 
+'required|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\EgressoController.php:147:            'curso_id'        => 
+'required|exists:cursos,id',
+app\Http\Controllers\Admin\EgressoController.php:148:            'status'          => 
+'required|in:active,inactive,lost_contact',
+app\Http\Controllers\Admin\EgressoController.php:348:            'numero_processo'   => 
+'required|string|max:50|unique:egressos,numero_processo,' . $id,
+app\Http\Controllers\Admin\EgressoController.php:349:            'nome_completo'     => 
+'required|string|max:255',
+app\Http\Controllers\Admin\EgressoController.php:350:            'genero'            => 
+'required|in:M,F,O',
+app\Http\Controllers\Admin\EgressoController.php:351:            'data_nascimento'   => 
+'nullable|date',
+app\Http\Controllers\Admin\EgressoController.php:352:            'email'             => 
+'nullable|email|max:255',
+app\Http\Controllers\Admin\EgressoController.php:353:            'telefone'          => 
+'nullable|string|max:20',
+app\Http\Controllers\Admin\EgressoController.php:354:            'foto'              => 
+'nullable|image|mimes:jpg,jpeg,png|max:2048',
+app\Http\Controllers\Admin\EgressoController.php:357:            'unidade_id'        => 
+'required|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\EgressoController.php:358:            'curso_id'          => 
+'required|exists:cursos,id',
+app\Http\Controllers\Admin\EgressoController.php:359:            'ano_formatura'     => 
+'nullable|integer|min:1990|max:' . (date('Y') + 5),
+app\Http\Controllers\Admin\EgressoController.php:360:            'nota_final'        => 
+'nullable|numeric|min:0|max:20',
+app\Http\Controllers\Admin\EgressoController.php:363:            'pais'              => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\EgressoController.php:364:            'provincia'         => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\EgressoController.php:365:            'cidade'            => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\EgressoController.php:366:            'data_desde'        => 
+'nullable|date',
+app\Http\Controllers\Admin\EgressoController.php:367:            'latitude'          => 
+'nullable|numeric|between:-90,90',
+app\Http\Controllers\Admin\EgressoController.php:368:            'longitude'         => 
+'nullable|numeric|between:-180,180',
+app\Http\Controllers\Admin\EgressoController.php:369:            'endereco'          => 
+'nullable|string|max:255',
+app\Http\Controllers\Admin\EgressoController.php:370:            'is_current'        => 
+'nullable|boolean',
+app\Http\Controllers\Admin\EgressoController.php:373:            'emprego_tipo'      => 
+'nullable|in:full_time,part_time,freelance,self_employed,unemployed,student,unknown',
+app\Http\Controllers\Admin\EgressoController.php:374:            'cargo'             => 
+'nullable|string|max:255',
+app\Http\Controllers\Admin\EgressoController.php:375:            'empregador'        => 
+'nullable|string|max:255',
+app\Http\Controllers\Admin\EgressoController.php:376:            'sector'            => 
+'nullable|string|max:255',
+app\Http\Controllers\Admin\EgressoController.php:377:            'data_inicio'       => 
+'nullable|date',
+app\Http\Controllers\Admin\EgressoController.php:378:            'linkedin_url'      => 
+'nullable|url|max:255',
+app\Http\Controllers\Admin\EgressoController.php:379:            'is_current_emprego'=> 
+'nullable|boolean',
+app\Http\Controllers\Admin\EgressoController.php:382:            'status'            => 
+'required|in:active,inactive,lost_contact',
+app\Http\Controllers\Admin\EgressoController.php:383:            'observacoes'       => 
+'nullable|string|max:1000',
+app\Http\Controllers\Admin\EventoController.php:103:            'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\EventoController.php:104:            'descricao' => 
+'nullable|string',
+app\Http\Controllers\Admin\EventoController.php:105:            'tipo' => 
+'required|in:presencial,online,hibrido',
+app\Http\Controllers\Admin\EventoController.php:106:            'categoria' => 
+'required|in:workshop,palestra,networking,job_fair,curso,outro',
+app\Http\Controllers\Admin\EventoController.php:107:            'data_inicio' => 
+'required|date|after:now',
+app\Http\Controllers\Admin\EventoController.php:108:            'data_fim' => 
+'nullable|date|after:data_inicio',
+app\Http\Controllers\Admin\EventoController.php:109:            'local' => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\EventoController.php:110:            'link_reuniao' => 
+'nullable|url|max:255',
+app\Http\Controllers\Admin\EventoController.php:111:            'max_participantes' => 
+'nullable|integer|min:1',
+app\Http\Controllers\Admin\EventoController.php:112:            'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\EventoController.php:152:            'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\EventoController.php:153:            'descricao' => 
+'nullable|string',
+app\Http\Controllers\Admin\EventoController.php:154:            'tipo' => 
+'required|in:presencial,online,hibrido',
+app\Http\Controllers\Admin\EventoController.php:155:            'categoria' => 
+'required|in:workshop,palestra,networking,job_fair,curso,outro',
+app\Http\Controllers\Admin\EventoController.php:156:            'data_inicio' => 
+'required|date',
+app\Http\Controllers\Admin\EventoController.php:157:            'data_fim' => 
+'nullable|date|after:data_inicio',
+app\Http\Controllers\Admin\EventoController.php:158:            'local' => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\EventoController.php:159:            'link_reuniao' => 
+'nullable|url|max:255',
+app\Http\Controllers\Admin\EventoController.php:160:            'max_participantes' => 
+'nullable|integer|min:1',
+app\Http\Controllers\Admin\EventoController.php:161:            'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\EventoController.php:215:            'presente' => 
+'required|boolean',
+app\Http\Controllers\Admin\EventoController.php:338:        'motivo_rejeicao' => 
+'nullable|string|max:500',
+app\Http\Controllers\Admin\MensagemController.php:123:            'mensagem' => 
+'required|string|max:1000',
+app\Http\Controllers\Admin\MensagemController.php:166:            'audio'   => 
+'required|file|mimes:webm,ogg,mp3,wav,m4a|max:10240',
+app\Http\Controllers\Admin\MensagemController.php:167:            'duracao' => 
+'nullable|integer|min:1|max:600',
+app\Http\Controllers\Admin\MensagemController.php:244:            'ficheiro' => 
+'required|file|max:51200',
+app\Http\Controllers\Admin\MensagemController.php:340:        $request->validate(['mensagem' 
+=> 'required|string|max:1000']);
+app\Http\Controllers\Admin\MuralController.php:31:            'titulo'      => 
+'required|string|max:200',
+app\Http\Controllers\Admin\MuralController.php:32:            'conteudo'    => 
+'required|string',
+app\Http\Controllers\Admin\MuralController.php:33:            'tipo'        => 
+'required|in:noticia,evento,edital',
+app\Http\Controllers\Admin\MuralController.php:34:            'imagem'      => 
+'nullable|image|mimes:jpeg,png,jpg|max:2048',
+app\Http\Controllers\Admin\MuralController.php:35:            'data_evento' => 'nullable|date',
+app\Http\Controllers\Admin\MuralController.php:36:            'local'       => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\MuralController.php:37:            'destaque'    => 
+'nullable|boolean',
+app\Http\Controllers\Admin\MuralController.php:38:            'publicado'   => 
+'nullable|boolean',
+app\Http\Controllers\Admin\MuralController.php:96:            'titulo'      => 
+'required|string|max:200',
+app\Http\Controllers\Admin\MuralController.php:97:            'conteudo'    => 
+'required|string',
+app\Http\Controllers\Admin\MuralController.php:98:            'tipo'        => 
+'required|in:noticia,evento,edital',
+app\Http\Controllers\Admin\MuralController.php:99:            'imagem'      => 
+'nullable|image|mimes:jpeg,png,jpg|max:2048',
+app\Http\Controllers\Admin\MuralController.php:100:            'data_evento' => 
+'nullable|date',
+app\Http\Controllers\Admin\MuralController.php:101:            'local'       => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\MuralController.php:102:            'destaque'    => 
+'nullable|boolean',
+app\Http\Controllers\Admin\MuralController.php:103:            'publicado'   => 
+'nullable|boolean',
+app\Http\Controllers\Admin\OportunidadeController.php:102:            'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\OportunidadeController.php:103:            'descricao' => 
+'required|string',
+app\Http\Controllers\Admin\OportunidadeController.php:104:            'tipo' => 
+'required|in:emprego,estagio,bolsa,curso,evento',
+app\Http\Controllers\Admin\OportunidadeController.php:105:            'empresa' => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\OportunidadeController.php:106:            'localizacao' => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\OportunidadeController.php:107:            'salario' => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\OportunidadeController.php:108:            'requisitos' => 
+'nullable|string',
+app\Http\Controllers\Admin\OportunidadeController.php:109:            'data_limite' => 
+'nullable|date|after:today',
+app\Http\Controllers\Admin\OportunidadeController.php:110:            'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\OportunidadeController.php:160:            'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\OportunidadeController.php:161:            'descricao' => 
+'required|string',
+app\Http\Controllers\Admin\OportunidadeController.php:162:            'tipo' => 
+'required|in:emprego,estagio,bolsa,curso,evento',
+app\Http\Controllers\Admin\OportunidadeController.php:163:            'empresa' => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\OportunidadeController.php:164:            'localizacao' => 
+'nullable|string|max:200',
+app\Http\Controllers\Admin\OportunidadeController.php:165:            'salario' => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\OportunidadeController.php:166:            'requisitos' => 
+'nullable|string',
+app\Http\Controllers\Admin\OportunidadeController.php:167:            'data_limite' => 
+'nullable|date|after:today',
+app\Http\Controllers\Admin\OportunidadeController.php:168:            'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\PerfilController.php:94:            'nome_completo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\PerfilController.php:95:            'telefone' => 
+'nullable|string|max:25',
+app\Http\Controllers\Admin\PerfilController.php:96:            'email' => 
+'required|email|unique:users,email,' . $user->id,
+app\Http\Controllers\Admin\PerfilController.php:97:            'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Admin\PerfilController.php:98:            'cargo' => 
+'nullable|string|max:100',
+app\Http\Controllers\Admin\PerfilController.php:99:            'foto' => 
+'nullable|image|mimes:jpeg,png,jpg|max:2048',
+app\Http\Controllers\Admin\PerfilController.php:100:            'password' => 
+'nullable|string|min:6|confirmed',
+app\Http\Controllers\Admin\PesquisaController.php:45:                'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\PesquisaController.php:46:                'descricao' => 
+'nullable|string',
+app\Http\Controllers\Admin\PesquisaController.php:47:                'data_inicio' => 
+'required|date',
+app\Http\Controllers\Admin\PesquisaController.php:48:                'data_fim' => 
+'required|date|after:data_inicio',
+app\Http\Controllers\Admin\PesquisaController.php:113:                'pergunta' => 
+'required|string|max:500',
+app\Http\Controllers\Admin\PesquisaController.php:118:                'opcoes' => 
+'nullable|array',
+app\Http\Controllers\Admin\PesquisaController.php:119:                'opcoes.*' => 
+'nullable|string|max:255',
+app\Http\Controllers\Admin\PesquisaController.php:120:                'obrigatoria' => 
+'nullable|boolean',
+app\Http\Controllers\Admin\PesquisaController.php:378:                'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Admin\PesquisaController.php:379:                'descricao' => 
+'nullable|string',
+app\Http\Controllers\Admin\PesquisaController.php:380:                'data_inicio' => 
+'required|date',
+app\Http\Controllers\Admin\PesquisaController.php:381:                'data_fim' => 
+'required|date|after:data_inicio',
+app\Http\Controllers\Admin\PesquisaController.php:382:                'ativa' => 
+'nullable|boolean',
+app\Http\Controllers\Admin\ServicoController.php:136:            'resposta_admin' => 
+'nullable|string|max:2000',
+app\Http\Controllers\Admin\UnidadeOrganicaController.php:25:            'sigla' => 
+'required|string|max:20|unique:unidades_organicas',
+app\Http\Controllers\Admin\UnidadeOrganicaController.php:26:            'nome' => 
+'required|string|max:100',
+app\Http\Controllers\Admin\UnidadeOrganicaController.php:27:            'descricao' => 
+'nullable|string',
+app\Http\Controllers\Admin\UnidadeOrganicaController.php:44:            'sigla' => 
+'required|string|max:20|unique:unidades_organicas,sigla,' . $unidade->id,
+app\Http\Controllers\Admin\UnidadeOrganicaController.php:45:            'nome' => 
+'required|string|max:100',
+app\Http\Controllers\Admin\UnidadeOrganicaController.php:46:            'descricao' => 
+'nullable|string',
+app\Http\Controllers\Admin\ValidacaoEgressosController.php:344:            'motivo_reprovacao' 
+=> 'required|string|min:10|max:500',
+app\Http\Controllers\Admin\VideoCallController.php:44:            'target_user_id' => 
+'required|exists:egressos,id',
+app\Http\Controllers\Admin\VideoCallController.php:45:            'type'           => 
+'required|in:video,audio',
+app\Http\Controllers\Admin\VideoCallController.php:202:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Admin\VideoCallController.php:241:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Admin\VideoCallController.php:275:            'room_id' => 
+'required|string',
+app\Http\Controllers\Admin\VideoCallController.php:276:            'tipo'    => 
+'required|in:oferta,resposta,ice_chamador,ice_recetor',
+app\Http\Controllers\Admin\VideoCallController.php:277:            'dados'   => 
+'required|array',
+app\Http\Controllers\Admin\VideoCallController.php:315:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Admin\VideoCallController.php:361:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Admin\VideoCallController.php:436:        'room_id' => 'required|string',
+app\Http\Controllers\Admin\VideoCallController.php:437:        'peer_id' => 
+'required|string|max:100',
+app\Http\Controllers\Auth\ForgotPasswordController.php:30:        'email' => 
+'required|email|exists:users,email',
+app\Http\Controllers\Auth\OtpVerificationController.php:60:            'email' => 
+'required|email',
+app\Http\Controllers\Auth\OtpVerificationController.php:61:            'code'  => 
+'required|string|size:6',
+app\Http\Controllers\Auth\PasswordResetController.php:24:            'email' => 
+'required|email',
+app\Http\Controllers\Auth\PasswordResetController.php:113:            'email'    => 
+'required|email',
+app\Http\Controllers\Auth\PasswordResetController.php:114:            'password' => 
+'required|min:8|confirmed',
+app\Http\Controllers\Auth\RegisterController.php:266:            'tipo' => 
+'required|in:admin,egresso,empresa',
+app\Http\Controllers\Auth\RegisterController.php:267:            'nome_completo' => 
+'nullable|string|max:200',
+app\Http\Controllers\Auth\RegisterController.php:268:            'email' => 'required|email|' 
+. $emailRule . '|indisposable',
+app\Http\Controllers\Auth\RegisterController.php:269:            'telefone' => 
+'nullable|string|max:25',
+app\Http\Controllers\Auth\RegisterController.php:270:            'password' => 
+'required|string|min:6|confirmed',
+app\Http\Controllers\Auth\RegisterController.php:271:            'foto' => 
+'nullable|image|mimes:jpeg,png,jpg|max:2048',
+app\Http\Controllers\Auth\RegisterController.php:280:                'nome_completo' => 
+'required|string|max:200',
+app\Http\Controllers\Auth\RegisterController.php:281:                'admin_code' => 
+'required|string|in:UNILUNDA2024',
+app\Http\Controllers\Auth\RegisterController.php:282:                'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Auth\RegisterController.php:292:                'empresa_nome' => 
+'required|string|max:200',
+app\Http\Controllers\Auth\RegisterController.php:293:                'empresa_nif' => 
+'nullable|string|max:20|unique:empresas,nif',
+app\Http\Controllers\Auth\RegisterController.php:294:                'empresa_sector' => 
+'required|string|max:100',
+app\Http\Controllers\Auth\RegisterController.php:295:                'empresa_website' => 
+'nullable|url|max:255',
+app\Http\Controllers\Auth\RegisterController.php:296:                'empresa_localizacao' => 
+'nullable|string|max:200',
+app\Http\Controllers\Auth\RegisterController.php:297:                'empresa_provincia' => 
+'nullable|string|max:100',
+app\Http\Controllers\Auth\RegisterController.php:298:                'empresa_descricao' => 
+'nullable|string',
+app\Http\Controllers\Auth\RegisterController.php:299:                'empresa_logo' => 
+'nullable|image|mimes:jpeg,png,jpg|max:2048',
+app\Http\Controllers\Auth\RegisterController.php:314:                'nome_completo' => 
+'required|string|max:200',
+app\Http\Controllers\Auth\RegisterController.php:315:                'numero_processo' => 
+'nullable|string',
+app\Http\Controllers\Auth\RegisterController.php:316:                'genero' => 
+'nullable|in:M,F,O',
+app\Http\Controllers\Auth\RegisterController.php:317:                'data_nascimento' => 
+'nullable|date|before:today',
+app\Http\Controllers\Auth\RegisterController.php:318:                'curso_id' => 
+'nullable|exists:cursos,id',
+app\Http\Controllers\Auth\RegisterController.php:319:                'unidade_id' => 
+'nullable|exists:unidades_organicas,id',
+app\Http\Controllers\Auth\RegisterController.php:320:                'ano_formatura' => 
+'nullable|integer|min:1990|max:' . date('Y'),
+app\Http\Controllers\Auth\RegisterController.php:325:                    'curso_id' => 
+'required|exists:cursos,id',
+app\Http\Controllers\Auth\RegisterController.php:326:                    'unidade_id' => 
+'required|exists:unidades_organicas,id',
+app\Http\Controllers\Auth\ResetPasswordController.php:33:            'email' => 
+'required|email',
+app\Http\Controllers\Auth\ResetPasswordController.php:34:            'password' => 
+'required|min:6|confirmed',
+app\Http\Controllers\Egresso\CandidaturaController.php:160:            'mensagem_motivacional' 
+=> 'nullable|string|max:2000',
+app\Http\Controllers\Egresso\CandidaturaController.php:161:            'cv_anexo'              
+=> 'nullable|file|mimes:pdf,doc,docx|max:5120',
+app\Http\Controllers\Egresso\FeedbackController.php:48:            'curso_id' => 
+'nullable|exists:cursos,id',
+app\Http\Controllers\Egresso\FeedbackController.php:49:            'titulo'   => 
+'required|string|max:255',
+app\Http\Controllers\Egresso\FeedbackController.php:50:            'mensagem' => 
+'required|string|max:2000',
+app\Http\Controllers\Egresso\FeedbackController.php:51:            'nota'     => 
+'nullable|integer|min:1|max:5',
+app\Http\Controllers\Egresso\FeedController.php:61:            'conteudo' => 
+'required|string|max:2000',
+app\Http\Controllers\Egresso\FeedController.php:62:            'imagem'   => 
+'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+app\Http\Controllers\Egresso\FeedController.php:207:            'conteudo' => 
+'required|string|max:1000',
+app\Http\Controllers\Egresso\FeedController.php:284:            'conteudo' => 
+'required|string|max:1000',
+app\Http\Controllers\Egresso\FeedController.php:339:            'conteudo'       => 
+'required|string|max:2000',
+app\Http\Controllers\Egresso\FeedController.php:340:            'imagem'         => 
+'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+app\Http\Controllers\Egresso\FeedController.php:341:            'remover_imagem' => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\LocalizacaoController.php:97:            'pais' => 
+'required|string|max:100',
+app\Http\Controllers\Egresso\LocalizacaoController.php:98:            'provincia' => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\LocalizacaoController.php:99:            'cidade' => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\LocalizacaoController.php:100:            'endereco' => 
+'nullable|string|max:255',
+app\Http\Controllers\Egresso\LocalizacaoController.php:101:            'latitude' => 
+'nullable|numeric|between:-90,90',
+app\Http\Controllers\Egresso\LocalizacaoController.php:102:            'longitude' => 
+'nullable|numeric|between:-180,180',
+app\Http\Controllers\Egresso\LocalizacaoController.php:103:            'data_desde' => 
+'nullable|date',
+app\Http\Controllers\Egresso\LocalizacaoController.php:104:            'is_current' => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\LocalizacaoController.php:184:            'pais' => 
+'required|string|max:100',
+app\Http\Controllers\Egresso\LocalizacaoController.php:185:            'provincia' => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\LocalizacaoController.php:186:            'cidade' => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\LocalizacaoController.php:187:            'endereco' => 
+'nullable|string|max:255',
+app\Http\Controllers\Egresso\LocalizacaoController.php:188:            'latitude' => 
+'nullable|numeric|between:-90,90',
+app\Http\Controllers\Egresso\LocalizacaoController.php:189:            'longitude' => 
+'nullable|numeric|between:-180,180',
+app\Http\Controllers\Egresso\LocalizacaoController.php:190:            'data_desde' => 
+'nullable|date',
+app\Http\Controllers\Egresso\LocalizacaoController.php:191:            'is_current' => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\MensagemController.php:136:            'mensagem' => 
+'required|string|max:1000',
+app\Http\Controllers\Egresso\MensagemController.php:188:            'audio'   => 
+'required|file|mimes:webm,ogg,mp3,wav,m4a|max:10240',
+app\Http\Controllers\Egresso\MensagemController.php:189:            'duracao' => 
+'nullable|integer|min:1|max:600',
+app\Http\Controllers\Egresso\MensagemController.php:286:            'ficheiro' => 
+'required|file|max:51200',
+app\Http\Controllers\Egresso\MensagemController.php:416:            'mensagem' => 
+'required|string|max:1000',
+app\Http\Controllers\Egresso\OportunidadeController.php:160:            
+'mensagem_motivacional' => 'nullable|string|max:1000',
+app\Http\Controllers\Egresso\OportunidadeController.php:161:            'cv_anexo'             
+ => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+app\Http\Controllers\Egresso\PerfilController.php:102:            'nome_completo'   => 
+'required|string|max:200',
+app\Http\Controllers\Egresso\PerfilController.php:103:            'genero'          => 
+'required|in:M,F,O',
+app\Http\Controllers\Egresso\PerfilController.php:104:            'data_nascimento' => 
+'nullable|date|before:today',
+app\Http\Controllers\Egresso\PerfilController.php:105:            'telefone'        => 
+'nullable|string|max:25',
+app\Http\Controllers\Egresso\PerfilController.php:106:            'foto'            => 
+'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+app\Http\Controllers\Egresso\PerfilController.php:107:            'password'        => 
+'nullable|string|min:6|confirmed',
+app\Http\Controllers\Egresso\PerfilController.php:110:            'curso_id'        => 
+'nullable|exists:cursos,id',
+app\Http\Controllers\Egresso\PerfilController.php:111:            'ano_formatura'   => 
+'nullable|integer|min:1990|max:' . (date('Y') + 5),
+app\Http\Controllers\Egresso\PerfilController.php:112:            'nota_final'      => 
+'nullable|numeric|min:0|max:20',
+app\Http\Controllers\Egresso\PerfilController.php:113:            'observacoes'     => 
+'nullable|string|max:500',
+app\Http\Controllers\Egresso\PerfilController.php:116:            'pais'            => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\PerfilController.php:117:            'provincia'       => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\PerfilController.php:118:            'cidade'          => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\PerfilController.php:119:            'endereco'        => 
+'nullable|string|max:255',
+app\Http\Controllers\Egresso\PerfilController.php:120:            'latitude'  => 
+'nullable|numeric|between:-90,90',
+app\Http\Controllers\Egresso\PerfilController.php:121:            'longitude' => 
+'nullable|numeric|between:-180,180',
+app\Http\Controllers\Egresso\PerfilController.php:122:            'data_desde'      => 
+'nullable|date',
+app\Http\Controllers\Egresso\PerfilController.php:123:            'is_current'      => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\PerfilController.php:126:            'emprego_tipo'    => 
+'nullable|in:full_time,part_time,freelance,self_employed,unemployed,student,unknown',
+app\Http\Controllers\Egresso\PerfilController.php:127:            'cargo'           => 
+'nullable|string|max:255',
+app\Http\Controllers\Egresso\PerfilController.php:128:            'empregador'      => 
+'nullable|string|max:255',
+app\Http\Controllers\Egresso\PerfilController.php:129:            'sector'          => 
+'nullable|string|max:255',
+app\Http\Controllers\Egresso\PerfilController.php:130:            'data_inicio'     => 
+'nullable|date',
+app\Http\Controllers\Egresso\PerfilController.php:131:            'linkedin_url'    => 
+'nullable|url|max:255',
+app\Http\Controllers\Egresso\PerfilController.php:132:            'is_current_emprego' => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\ProfissionalController.php:32:            'tipo_emprego' => 
+'required|string|in:full_time,part_time,freelance,self_employed,unemployed,student,unknown',
+app\Http\Controllers\Egresso\ProfissionalController.php:33:            'cargo' => 
+'nullable|string|max:150',
+app\Http\Controllers\Egresso\ProfissionalController.php:34:            'empregador' => 
+'nullable|string|max:200',
+app\Http\Controllers\Egresso\ProfissionalController.php:35:            'sector' => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\ProfissionalController.php:36:            'data_inicio' => 
+'nullable|date',
+app\Http\Controllers\Egresso\ProfissionalController.php:37:            'data_fim' => 
+'nullable|date|after:data_inicio',
+app\Http\Controllers\Egresso\ProfissionalController.php:38:            'is_current' => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\ProfissionalController.php:39:            'linkedin_url' => 
+'nullable|url|max:255',
+app\Http\Controllers\Egresso\ProfissionalController.php:101:            'tipo_emprego' => 
+'required|string|in:full_time,part_time,freelance,self_employed,unemployed,student,unknown',
+app\Http\Controllers\Egresso\ProfissionalController.php:102:            'cargo' => 
+'nullable|string|max:150',
+app\Http\Controllers\Egresso\ProfissionalController.php:103:            'empregador' => 
+'nullable|string|max:200',
+app\Http\Controllers\Egresso\ProfissionalController.php:104:            'sector' => 
+'nullable|string|max:100',
+app\Http\Controllers\Egresso\ProfissionalController.php:105:            'data_inicio' => 
+'nullable|date',
+app\Http\Controllers\Egresso\ProfissionalController.php:106:            'data_fim' => 
+'nullable|date|after:data_inicio',
+app\Http\Controllers\Egresso\ProfissionalController.php:107:            'is_current' => 
+'nullable|boolean',
+app\Http\Controllers\Egresso\ProfissionalController.php:108:            'linkedin_url' => 
+'nullable|url|max:255',
+app\Http\Controllers\Egresso\ServicoController.php:132:            'servico'   => 
+'required|string|max:100',
+app\Http\Controllers\Egresso\ServicoController.php:133:            'descricao' => 
+'required|string|max:2000',
+app\Http\Controllers\Egresso\VideoCallController.php:35:            'target_user_id' => 
+'required|exists:egressos,id',
+app\Http\Controllers\Egresso\VideoCallController.php:36:            'type'           => 
+'required|in:video,audio',
+app\Http\Controllers\Egresso\VideoCallController.php:193:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Egresso\VideoCallController.php:234:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Egresso\VideoCallController.php:270:            'room_id' => 
+'required|string',
+app\Http\Controllers\Egresso\VideoCallController.php:271:            'tipo'    => 
+'required|in:oferta,resposta,ice_chamador,ice_recetor',
+app\Http\Controllers\Egresso\VideoCallController.php:272:            'dados'   => 
+'required|array',
+app\Http\Controllers\Egresso\VideoCallController.php:393:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Egresso\VideoCallController.php:448:        $request->validate(['room_id' 
+=> 'required|string']);
+app\Http\Controllers\Egresso\VideoCallController.php:494:            'room_id' => 
+'required|string',
+app\Http\Controllers\Egresso\VideoCallController.php:495:            'peer_id' => 
+'required|string|max:100',
+app\Http\Controllers\Empresa\ChatbotController.php:19:            'mensagem' => 
+'required|string|max:2000',
+app\Http\Controllers\Empresa\EmpresaCandidaturaController.php:83:            'status' => 
+'required|in:pendente,em_analise,entrevista,aprovado,aceite,rejeitado',
+app\Http\Controllers\Empresa\EmpresaCandidaturaController.php:84:            'data_entrevista' 
+=> 'nullable|date|after:now',
+app\Http\Controllers\Empresa\EmpresaCandidaturaController.php:85:            
+'local_entrevista' => 'nullable|string|max:255',
+app\Http\Controllers\Empresa\EmpresaCandidaturaController.php:86:            'motivo_rejeicao' 
+=> 'nullable|string',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:163:            'nome'        => 
+'required|string|max:200',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:164:            'telefone'    => 
+'nullable|string|max:25',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:165:            'website'     => 
+'nullable|url|max:255',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:166:            'sector'      => 
+'required|string|max:100',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:167:            'descricao'   => 
+'nullable|string',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:168:            'localizacao' => 
+'nullable|string|max:200',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:169:            'provincia'   => 
+'nullable|string|max:100',
+app\Http\Controllers\Empresa\EmpresaDashboardController.php:170:            'logo'        => 
+'nullable|image|mimes:jpeg,png,jpg|max:2048',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:83:            'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:84:            'descricao' => 
+'required|string',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:85:            'tipo' => 
+'required|in:emprego,estagio,bolsa,curso,evento',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:86:            'localizacao' => 
+'nullable|string|max:200',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:87:            'salario' => 
+'nullable|string|max:100',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:88:            'requisitos' => 
+'nullable|string',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:89:            'data_limite' => 
+'nullable|date|after:today',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:149:            'titulo' => 
+'required|string|max:200',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:150:            'descricao' => 
+'required|string',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:151:            'tipo' => 
+'required|in:emprego,estagio,bolsa,curso,evento',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:152:            'localizacao' 
+=> 'nullable|string|max:200',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:153:            'salario' => 
+'nullable|string|max:100',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:154:            'requisitos' => 
+'nullable|string',
+app\Http\Controllers\Empresa\EmpresaOportunidadeController.php:155:            'data_limite' 
+=> 'nullable|date',
+
+

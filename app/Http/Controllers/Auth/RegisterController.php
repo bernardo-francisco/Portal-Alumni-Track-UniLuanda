@@ -352,47 +352,37 @@ class RegisterController extends Controller
                     }
 
                     // ========================================================
-                    // 🛡️ BLOQUEIO 2 — Egresso sem email original
+                    // 🛡️ BLOQUEIO 2 e 3 — Validação de email apenas se existir
                     // ========================================================
                     $emailOriginal = strtolower(trim((string) $egressoExistente->email));
-
-                    if ($emailOriginal === '') {
-                        Log::warning('🚨 Reivindicação de egresso SEM email original', [
-                            'ip'              => $request->ip(),
-                            'numero_processo' => $request->numero_processo,
-                            'email_novo'      => $request->email,
-                            'user_agent'      => $request->userAgent(),
-                        ]);
-
-                        return back()
-                            ->withInput()
-                            ->with(
-                                'error',
-                                '⚠️ Este número de processo não tem email registado. Contacte a administração para reivindicar a conta.'
-                            );
-                    }
-
-                    // ========================================================
-                    // 🛡️ BLOQUEIO 3 — Email introduzido ≠ Email original
-                    // ========================================================
                     $emailNovo = strtolower(trim((string) $request->email));
 
-                    if ($emailOriginal !== $emailNovo) {
-                        Log::warning('🚨 Tentativa de reivindicação com email DIFERENTE', [
-                            'ip'                => $request->ip(),
-                            'numero_processo'   => $request->numero_processo,
-                            'email_introduzido' => $request->email,
-                            'email_original'    => $egressoExistente->email,
-                            'user_agent'        => $request->userAgent(),
-                        ]);
+                    // Se o egresso já tinha um email registado, ele tem de ser igual
+                    if ($emailOriginal !== '') {
+                        if ($emailOriginal !== $emailNovo) {
+                            Log::warning('🚨 Tentativa de reivindicação com email DIFERENTE', [
+                                'ip'                => $request->ip(),
+                                'numero_processo'   => $request->numero_processo,
+                                'email_introduzido' => $request->email,
+                                'email_original'    => $egressoExistente->email,
+                                'user_agent'        => $request->userAgent(),
+                            ]);
 
-                        return back()
-                            ->withInput()
-                            ->with(
-                                'error',
-                                '❌ O email introduzido não corresponde ao email registado para este número de processo. ' .
-                                'Se é o titular, use o email original ou contacte a administração.'
-                            );
+                            return back()
+                                ->withInput()
+                                ->with(
+                                    'error',
+                                    '❌ O email introduzido não corresponde ao email registado para este número de processo. ' .
+                                    'Se é o titular, use o email original ou contacte a administração.'
+                                );
+                        }
+                    } 
+                    // Se o egresso NÃO tinha email (foi apagado pelo admin), permite definir um novo!
+                    else {
+                        Log::info('✅ Egresso sem email original. A permitir definir novo email.', [
+                            'numero_processo' => $request->numero_processo,
+                            'email_novo'      => $request->email,
+                        ]);
                     }
 
                     $statusValidacao = 'aprovado';

@@ -268,10 +268,13 @@
             registarPeer: @json(url('/egresso/video-call/registar-peer')),
             estado:       @json(url('/egresso/video-call/estado')),
             encerrar:     @json(url('/egresso/video-call/encerrar')),
+            iceServers:   @json(url('/egresso/video-call/ice-servers')),
         },
     };
 
+    @if (config('app.debug'))
     console.log('🎬 VIDEO_CALL_CONFIG (egresso):', window.VIDEO_CALL_CONFIG);
+    @endif
 </script>
 
 {{-- 3) Motor principal (Vite) --}}

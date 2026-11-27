@@ -297,56 +297,19 @@ class RelatorioController extends Controller
     // ================================================================
     // 3. LOCALIZAÇÕES
     // ================================================================
-    public function pdfLocalizacoes()
+         public function pdfLocalizacoes()
     {
+        // ✅ Só vai buscar os registos onde is_current = true
         $localizacoes = Localizacao::with(['egresso.curso'])
             ->whereHas('egresso.user', fn($q) => $q->where('is_admin', false))
+            ->where('is_current', true) 
             ->get();
 
         $comCoordenadas = $localizacoes->filter(fn($loc) => !is_null($loc->latitude) && !is_null($loc->longitude));
 
-        $mapaBase64 = null;
-        $erroDetalhado = null;
-
-        if ($comCoordenadas->count() > 0) {
-            $pontos = []; $lats = []; $lons = [];
-            foreach ($comCoordenadas as $loc) {
-                $lat = (float) trim($loc->latitude);
-                $lon = (float) trim($loc->longitude);
-                $lats[] = $lat; $lons[] = $lon;
-                $pontos[] = "{$lon},{$lat},pm2rdm";
-            }
-            $stringPontos = implode('~', $pontos);
-
-            if ($comCoordenadas->count() === 1) {
-                $mapUrl = "https://static-maps.yandex.ru/1.x/?l=map&lang=pt_RU&z=10&size=650,250&pt={$stringPontos}";
-            } else {
-                $minLat = min($lats) - 1.5; $maxLat = max($lats) + 1.5;
-                $minLon = min($lons) - 2.0; $maxLon = max($lons) + 2.0;
-                $bbox = "{$minLon},{$minLat}~{$maxLon},{$maxLat}";
-                $mapUrl = "https://static-maps.yandex.ru/1.x/?l=map&lang=pt_RU&size=650,250&bbox={$bbox}&pt={$stringPontos}";
-            }
-
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL => $mapUrl,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => false,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_USERAGENT => 'Mozilla/5.0',
-                CURLOPT_TIMEOUT => 15,
-            ]);
-            $imageData = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode === 200 && $imageData && strlen($imageData) > 500) {
-                $mapaBase64 = 'data:image/png;base64,' . base64_encode($imageData);
-            } else {
-                $erroDetalhado = "Erro ao carregar mapa.";
-            }
-        }
+        // Mapa gerado com base nas localizações filtradas
+        $mapaBase64 = $this->gerarMapaBase64();
+        $erroDetalhado = $mapaBase64 ? null : 'Não foi possível gerar o mapa (serviço indisponível).';
 
         return Pdf::loadView('admin.relatorios.pdf.localizacoes', compact('localizacoes', 'mapaBase64', 'comCoordenadas', 'erroDetalhado'))
             ->setOption('isRemoteEnabled', true)
@@ -356,20 +319,37 @@ class RelatorioController extends Controller
 
     public function excelLocalizacoes()
     {
-        $localizacoes = Localizacao::with('egresso')
+        $localizacoes = Localizacao::with(['egresso.curso'])
             ->whereHas('egresso.user', fn($q) => $q->where('is_admin', false))
-            ->where('is_current', true)
+            ->where('is_current', true) // ✅ Garante que só exporta a atual
             ->orderBy('pais')
+            ->orderBy('cidade')
             ->get();
 
-        $headers = ['Egresso', 'Nº Processo', 'País', 'Província', 'Cidade', 'Desde', 'Atual'];
+        $headers = [
+            'Egresso', 
+            'Nº Processo', 
+            'Curso', 
+            'País', 
+            'Província', 
+            'Cidade', 
+            'Endereço', 
+            'Latitude', 
+            'Longitude', 
+            'Desde', 
+            'Atual'
+        ];
 
         $rows = $localizacoes->map(fn($l) => [
             $l->egresso->nome_completo ?? '',
             $l->egresso->numero_processo ?? '',
+            $l->egresso->curso->nome ?? '',
             $l->pais ?? '',
             $l->provincia ?? '',
             $l->cidade ?? '',
+            $l->endereco ?? '',
+            $l->latitude ?? '',
+            $l->longitude ?? '',
             $l->data_desde ? date('d/m/Y', strtotime($l->data_desde)) : '',
             $l->is_current ? 'Sim' : 'Não',
         ])->toArray();
@@ -798,42 +778,61 @@ class RelatorioController extends Controller
 
         if ($localizacoes->count() === 0) return null;
 
-        $pontos = []; $lats = []; $lons = [];
-        foreach ($localizacoes as $loc) {
+        // Usa a chave da Geoapify que já tens no .env
+        $apiKey = env('GEOAPIFY_API_KEY');
+        if (!$apiKey) {
+            \Illuminate\Support\Facades\Log::warning('Geoapify API Key não configurada.');
+            return null;
+        }
+
+        $pontos = [];
+        $lats = []; $lons = [];
+        
+        // Limitamos a 50 pontos para não estourar o tamanho da URL
+        foreach ($localizacoes->take(50) as $loc) {
             $lat = (float) trim($loc->latitude);
             $lon = (float) trim($loc->longitude);
             $lats[] = $lat; $lons[] = $lon;
-            $pontos[] = "{$lon},{$lat},pm2rdm";
+            
+            // ✅ Mantém a cor original (padrão) e o tamanho normal
+            $pontos[] = "lonlat:{$lon},{$lat}";
         }
-        $stringPontos = implode('~', $pontos);
 
-        if ($localizacoes->count() === 1) {
-            $mapUrl = "https://static-maps.yandex.ru/1.x/?l=map&lang=pt_RU&z=10&size=650,250&pt={$stringPontos}";
+        // O pipe | separa os marcadores
+        $markers = implode('|', $pontos);
+        
+        $style = 'osm-bright'; // Estilo do mapa
+        $lang = 'pt';          // ✅ Idioma português
+
+        // Se houver apenas 1 ponto, damos zoom. Se houver vários, deixamos o Geoapify calcular a área.
+        if (count($pontos) === 1) {
+            $url = "https://maps.geoapify.com/v1/staticmap?style={$style}&width=800&height=500&lang={$lang}&center=lonlat:{$lons[0]},{$lats[0]}&zoom=12&marker={$markers}&apiKey={$apiKey}";
         } else {
-            $minLat = min($lats) - 1.5; $maxLat = max($lats) + 1.5;
-            $minLon = min($lons) - 2.0; $maxLon = max($lons) + 2.0;
-            $bbox = "{$minLon},{$minLat}~{$maxLon},{$maxLat}";
-            $mapUrl = "https://static-maps.yandex.ru/1.x/?l=map&lang=pt_RU&size=650,250&bbox={$bbox}&pt={$stringPontos}";
+            $url = "https://maps.geoapify.com/v1/staticmap?style={$style}&width=800&height=500&lang={$lang}&marker={$markers}&apiKey={$apiKey}";
         }
 
+        // Fazer o download da imagem
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $mapUrl,
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT => 'Mozilla/5.0',
             CURLOPT_TIMEOUT => 15,
+            CURLOPT_USERAGENT => 'Mozilla/5.0',
         ]);
         $imageData = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode === 200 && $imageData && strlen($imageData) > 500) {
-            return 'data:image/png;base64,' . base64_encode($imageData);
+        if ($httpCode === 200 && $imageData && strlen($imageData) > 1000) {
+            // O Geoapify devolve JPEG, por isso ajustamos o MIME type
+            return 'data:image/jpeg;base64,' . base64_encode($imageData);
         }
 
+        // Log de erro para debug
+        $errorMsg = substr($imageData, 0, 300);
+        \Illuminate\Support\Facades\Log::warning("Falha ao gerar mapa Geoapify. HTTP: {$httpCode}. Resposta: {$errorMsg}. URL: {$url}");
+        
         return null;
     }
 

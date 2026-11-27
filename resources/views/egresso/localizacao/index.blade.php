@@ -388,6 +388,19 @@
                             </div>
                         @endif
 
+                        {{-- ✅ NOVO: Mini-mapa OSM (só leitura) --}}
+                        @if($loc->latitude && $loc->longitude)
+                            <div class="mt-3 location-mini-map"
+                                 style="border-radius: 12px; overflow: hidden; height: 160px; border: 1px solid #e9ecef;">
+                                <iframe
+                                    src="https://www.openstreetmap.org/export/embed.html?bbox={{ $loc->longitude - 0.01 }}%2C{{ $loc->latitude - 0.01 }}%2C{{ $loc->longitude + 0.01 }}%2C{{ $loc->latitude + 0.01 }}&amp;layer=mapnik&amp;marker={{ $loc->latitude }}%2C{{ $loc->longitude }}"
+                                    style="width: 100%; height: 100%; border: 0; display: block;"
+                                    loading="lazy"
+                                    title="Mapa de {{ $loc->cidade ?? $loc->pais }}">
+                                </iframe>
+                            </div>
+                        @endif
+
                     </div>
 
                     {{-- ============================================================
@@ -460,4 +473,3 @@
 @endif
 
 @endsection
-

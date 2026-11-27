@@ -34,84 +34,92 @@ class EgressoController extends Controller
      *
      * Esses aparecem apenas em /admin/validacao
      */
-        public function index(Request $request)
-        {
-            $query = Egresso::with(['curso.unidade', 'user'])
-                ->whereHas('user', function ($q) {
-                    $q->where('is_admin', false)
-                    ->where('tipo', '!=', 'admin')
-                    ->where('role', '!=', 'admin');
-                })
-                ->where(function ($q) {
-                    // 1. Egressos APROVADOS pelo admin
-                    $q->where('status_validacao', 'aprovado')
-                    // 2. OU egressos CRIADOS pelo admin
-                    //    (nº processo normal, sem prefixos PENDENTE_ / ADMIN_)
-                    ->orWhere(function ($sub) {
-                        $sub->where('status_validacao', 'pendente')
-                            ->whereNotNull('numero_processo')
-                            ->where('numero_processo', 'NOT LIKE', 'PENDENTE_%')
-                            ->where('numero_processo', 'NOT LIKE', 'ADMIN_%');
-                    });
-                });
+     
+public function index(Request $request)
+{
+    $query = Egresso::with(['curso.unidade', 'user'])
+        ->whereHas('user', function ($q) {
+            $q->where('is_admin', false)
+            ->where('tipo', '!=', 'admin')
+            ->where('role', '!=', 'admin');
+        })
+        ->where(function ($q) {
+            // 1. Egressos APROVADOS pelo admin
+            $q->where('status_validacao', 'aprovado')
+            // 2. OU egressos CRIADOS pelo admin
+            ->orWhere(function ($sub) {
+                $sub->where('status_validacao', 'pendente')
+                    ->whereNotNull('numero_processo')
+                    ->where('numero_processo', 'NOT LIKE', 'PENDENTE_%')
+                    ->where('numero_processo', 'NOT LIKE', 'ADMIN_%');
+            });
+        });
 
-            // Filtro: Pesquisa
-            if ($request->filled('q')) {
-                $termo = $request->q;
-                $query->where(function ($q) use ($termo) {
-                    $q->where('nome_completo', 'like', "%{$termo}%")
-                    ->orWhere('numero_processo', 'like', "%{$termo}%")
-                    ->orWhere('email', 'like', "%{$termo}%");
-                });
-            }
+    // Filtro: Pesquisa (Nome, Número de Processo ou Email)
+    if ($request->filled('search') || $request->filled('q')) {
+        $termo = addcslashes($request->search ?? $request->q, '%_'); 
 
-            // Filtro: Status
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
-            }
+        $query->where(function ($q) use ($termo) {
+            $q->where('nome_completo', 'like', "%{$termo}%")
+            ->orWhere('numero_processo', 'like', "%{$termo}%")
+            ->orWhere('email', 'like', "%{$termo}%");
+        });
+    }
+    
+    // Filtro: Status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-            // Filtro: Curso
-            if ($request->filled('curso_id')) {
-                $query->where('curso_id', $request->curso_id);
-            }
+    // Filtro: Curso
+    if ($request->filled('curso_id')) {
+        $query->where('curso_id', $request->curso_id);
+    }
 
-            // Filtro: Unidade
-            if ($request->filled('unidade_id')) {
-                $query->whereHas('curso', fn($q) => $q->where('unidade_id', $request->unidade_id));
-            }
+    // Filtro: Unidade
+    if ($request->filled('unidade_id')) {
+        $query->whereHas('curso', fn($q) => $q->where('unidade_id', $request->unidade_id));
+    }
 
-            $egressos  = $query->orderBy('nome_completo')->paginate(20)->appends($request->query());
-            $cursos    = Curso::orderBy('nome')->get();
-            $unidades  = UnidadeOrganica::orderBy('nome')->get();
+    $egressos = $query->orderBy('nome_completo')->paginate(20)->appends($request->query());
 
-            // ============================================================
-            // ✅ STATS — apenas egressos REAIS
-            // (aprovados + criados pelo admin, excluindo admins e registos PENDENTE_)
-            // ============================================================
-            $baseQuery = fn() => Egresso::whereHas('user', function ($q) {
-                    $q->where('is_admin', false)
-                    ->where('tipo', '!=', 'admin')
-                    ->where('role', '!=', 'admin');
-                })
-                ->where(function ($q) {
-                    $q->where('status_validacao', 'aprovado')
-                    ->orWhere(function ($sub) {
-                        $sub->where('status_validacao', 'pendente')
-                            ->whereNotNull('numero_processo')
-                            ->where('numero_processo', 'NOT LIKE', 'PENDENTE_%')
-                            ->where('numero_processo', 'NOT LIKE', 'ADMIN_%');
-                    });
-                });
+    // ============================================================
+    // ✅ NOVO: Se for um pedido AJAX, retorna a partial e PARA AQUI!
+    // ============================================================
+    if ($request->ajax()) {
+        return view('admin.egressos.partials.tabela', compact('egressos'))->render();
+    }
 
-            $stats = [
-                'total'       => $baseQuery()->count(),
-                'ativos'      => $baseQuery()->where('status', 'active')->count(),
-                'inativos'    => $baseQuery()->where('status', 'inactive')->count(),
-                'verificados' => $baseQuery()->where('verificado', true)->count(),
-            ];
+    // ============================================================
+    // Só executa o código abaixo se NÃO for AJAX (carregamento normal)
+    // ============================================================
+    $cursos    = Curso::orderBy('nome')->get();
+    $unidades  = UnidadeOrganica::orderBy('nome')->get();
 
-            return view('admin.egressos.index', compact('egressos', 'cursos', 'unidades', 'stats'));
-        }
+    $baseQuery = fn() => Egresso::whereHas('user', function ($q) {
+            $q->where('is_admin', false)
+            ->where('tipo', '!=', 'admin')
+            ->where('role', '!=', 'admin');
+        })
+        ->where(function ($q) {
+            $q->where('status_validacao', 'aprovado')
+            ->orWhere(function ($sub) {
+                $sub->where('status_validacao', 'pendente')
+                    ->whereNotNull('numero_processo')
+                    ->where('numero_processo', 'NOT LIKE', 'PENDENTE_%')
+                    ->where('numero_processo', 'NOT LIKE', 'ADMIN_%');
+            });
+        });
+
+    $stats = [
+        'total'       => $baseQuery()->count(),
+        'ativos'      => $baseQuery()->where('status', 'active')->count(),
+        'inativos'    => $baseQuery()->where('status', 'inactive')->count(),
+        'verificados' => $baseQuery()->where('verificado', true)->count(),
+    ];
+
+    return view('admin.egressos.index', compact('egressos', 'cursos', 'unidades', 'stats'));
+}
 
     // ================================================================
     // 🆕 FORMULÁRIO DE CRIAÇÃO
@@ -329,7 +337,7 @@ class EgressoController extends Controller
     // ================================================================
     // 🔄 ATUALIZAR EGRESSO
     // ================================================================
-    public function update(Request $request, $id)
+        public function update(Request $request, $id)
     {
         $egresso = Egresso::findOrFail($id);
 
@@ -340,7 +348,7 @@ class EgressoController extends Controller
             'numero_processo'   => 'required|string|max:50|unique:egressos,numero_processo,' . $id,
             'nome_completo'     => 'required|string|max:255',
             'genero'            => 'required|in:M,F,O',
-            'data_nascimento'   => 'nullable|date',
+            'data_nascimento' => 'nullable|date|before:today',
             'email'             => 'nullable|email|max:255',
             'telefone'          => 'nullable|string|max:20',
             'foto'              => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -356,8 +364,8 @@ class EgressoController extends Controller
             'provincia'         => 'nullable|string|max:100',
             'cidade'            => 'nullable|string|max:100',
             'data_desde'        => 'nullable|date',
-            'latitude'          => 'nullable|string|max:50',
-            'longitude'         => 'nullable|string|max:50',
+            'latitude'          => 'nullable|numeric|between:-90,90',
+            'longitude'         => 'nullable|numeric|between:-180,180',
             'endereco'          => 'nullable|string|max:255',
             'is_current'        => 'nullable|boolean',
 
@@ -408,23 +416,24 @@ class EgressoController extends Controller
         }
 
         // ============================================================
-        // ✅ ATUALIZAR EGRESSO — preservar valores antigos
+        // ✅ ATUALIZAR EGRESSO
         // ============================================================
+        // Alterações: Removemos o "filled()" para permitir guardar campos vazios.
         $egresso->update([
             'numero_processo'  => $request->numero_processo,
             'nome_completo'    => $request->nome_completo,
             'genero'           => $request->genero,
-            'data_nascimento'  => $request->filled('data_nascimento') ? $request->data_nascimento : $egresso->data_nascimento,
-            'email'            => $request->filled('email') ? $request->email : $egresso->email,
-            'telefone'         => $request->filled('telefone') ? $request->telefone : $egresso->telefone,
+            'data_nascimento'  => $request->data_nascimento ? $request->data_nascimento : null,
+            'email'            => $request->email ? $request->email : null, // ✅ Agora permite guardar null
+            'telefone'         => $request->telefone ? $request->telefone : null, // ✅ Agora permite guardar null
             'foto_url'         => $fotoPath,
 
             'curso_id'         => $request->curso_id,
-            'ano_formatura'    => $request->filled('ano_formatura') ? $request->ano_formatura : $egresso->ano_formatura,
-            'nota_final'       => $request->filled('nota_final') ? $request->nota_final : $egresso->nota_final,
+            'ano_formatura'    => $request->ano_formatura ? $request->ano_formatura : null, // ✅ Agora permite guardar null
+            'nota_final'       => $request->nota_final !== null ? $request->nota_final : null, // ✅ Agora permite guardar null
 
             'status'           => $request->status,
-            'observacoes'      => $request->filled('observacoes') ? $request->observacoes : $egresso->observacoes,
+            'observacoes'      => $request->observacoes ? $request->observacoes : null, // ✅ Agora permite guardar null
         ]);
 
         // ============================================================

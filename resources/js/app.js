@@ -92,6 +92,97 @@ const UniLuanda = (function () {
 
 window.mostrarToast = UniLuanda.mostrarToast;
 
+/* ================================================================
+   INTERCEPTOR GLOBAL — Sessão expirada / CSRF (401 / 419)
+   ----------------------------------------------------------------
+   Intercepta TODAS as chamadas fetch() do projecto.
+   Quando o servidor devolve 401 (SESSION_INVALIDATED) ou 419
+   (CSRF mismatch), redireciona automaticamente para /login
+   e para qualquer polling em curso.
+
+   Aplicado uma única vez, aqui, no início do app.js.
+================================================================ */
+(function () {
+    const _fetchOriginal = window.fetch.bind(window);
+
+    // Sinal global para o polling parar
+    window.__sessaoInvalida = false;
+
+    // Limpa timers conhecidos de polling (chatbot, notificações)
+    function pararPolling() {
+        try {
+            // Limite máximo de segurança para não bloquear o browser
+            const maxId = setTimeout(() => {}, 0);
+            for (let i = 1; i <= maxId; i++) {
+                clearInterval(i);
+                clearTimeout(i);
+            }
+        } catch (e) {
+            // ignora — alguns IDs podem não ser timers válidos
+        }
+    }
+
+    function redirecionarParaLogin(url) {
+        if (window.__sessaoInvalida) return; // evita loop
+        window.__sessaoInvalida = true;
+        pararPolling();
+        window.location.href = url || '/login';
+    }
+
+     window.fetch = async function (input, init) {
+        
+        
+        // Se a sessão já foi marcada como inválida, nem tenta
+        if (window.__sessaoInvalida) {
+            return Promise.reject(new Error('Sessão inválida — redirecionando.'));
+        }
+
+        // Garante headers AJAX/JSON para que o Laravel devolva JSON nos erros
+        init = init || {};
+        const headers = new Headers(init.headers || {});
+        if (!headers.has('X-Requested-With')) headers.set('X-Requested-With', 'XMLHttpRequest');
+        if (!headers.has('Accept'))           headers.set('Accept', 'application/json');
+        init.headers = headers;
+
+        let resp;
+        try {
+            resp = await _fetchOriginal(input, init);
+        } catch (err) {
+            // Erro de rede — deixa passar
+            throw err;
+        }
+
+        // ---------- 401 SESSION_INVALIDATED (middleware single.session) ----------
+        if (resp.status === 401) {
+            let data = null;
+            try {
+                const clone = resp.clone();
+                data = await clone.json();
+            } catch (e) { /* não é JSON */ }
+
+            if (data && data.code === 'SESSION_INVALIDATED') {
+                if (typeof window.mostrarToast === 'function') {
+                    window.mostrarToast(data.message || 'Sessão iniciada noutro dispositivo.', 'danger');
+                }
+                redirecionarParaLogin(data.redirect || '/login');
+                throw new Error('SESSION_INVALIDATED');
+            }
+        }
+
+        // ---------- 419 CSRF token mismatch (fallback) ----------
+        if (resp.status === 419) {
+            if (typeof window.mostrarToast === 'function') {
+                window.mostrarToast('A sua sessão expirou. Faça login novamente.', 'danger');
+            }
+            redirecionarParaLogin('/login');
+            throw new Error('CSRF_MISMATCH');
+        }
+
+        return resp;
+    };
+
+    console.log('🔐 Interceptor 401/419 ativo (fetch global).');
+})();
 
 /* ================================================================
    1. SIDEBAR
@@ -1262,6 +1353,7 @@ function abrirModalEditar(id) {
 
     if (!admin) {
         setInterval(() => {
+            if (window.__sessaoInvalida) return;
             fetch(`${base}/verificar`, { headers: { 'X-CSRF-TOKEN': UniLuanda.csrf() } })
                 .then(r => r.json())
                 .then(data => {
@@ -2407,6 +2499,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+
+
 /* ================================================================
    FIM — App.js UniLuanda Alumni
 ================================================================ */

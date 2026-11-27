@@ -44,7 +44,7 @@ class PesquisaController extends Controller
             [
                 'titulo' => 'required|string|max:200',
                 'descricao' => 'nullable|string',
-                'data_inicio' => 'required|date',
+                'data_inicio' => 'required|date|after_or_equal:today',
                 'data_fim' => 'required|date|after:data_inicio',
             ],
             [
@@ -377,7 +377,7 @@ public function resultados($id)
             [
                 'titulo' => 'required|string|max:200',
                 'descricao' => 'nullable|string',
-                'data_inicio' => 'required|date',
+                'data_inicio' => 'required|date|after_or_equal:today',
                 'data_fim' => 'required|date|after:data_inicio',
                 'ativa' => 'nullable|boolean',
             ],

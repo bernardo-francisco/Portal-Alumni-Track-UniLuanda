@@ -12,7 +12,13 @@ use Illuminate\Support\Str;
 class CertificadoController extends Controller
 {
     /**
-     * Descarrega o certificado PDF de um evento
+     * Descarrega o certificado PDF de um evento.
+     *
+     * Regras de emissão (todas obrigatórias):
+     *  - Inscrição pertence ao egresso autenticado
+     *  - Evento já aconteceu (data_inicio no passado e não nula)
+     *  - Egresso marcado como presente
+     *  - Inscrição com status "confirmada"
      */
     public function download($inscricaoId)
     {
@@ -28,20 +34,15 @@ class CertificadoController extends Controller
             ->where('egresso_id', $egresso->id)
             ->firstOrFail();
 
-        if ($inscricao->evento->data_inicio && $inscricao->evento->data_inicio->isFuture()) {
-            return back()->with('error', 'O certificado só fica disponível após o evento.');
+        // ── Validações de elegibilidade ────────────────────────────────
+        $erro = $this->validarElegibilidade($inscricao);
+
+        if ($erro !== null) {
+            return back()->with('error', $erro);
         }
 
-        if (!$inscricao->presente) {
-            return back()->with('error', 'O certificado só é emitido para participantes presentes.');
-        }
-
-        // ✅ Garantir código do certificado
-        if (!$inscricao->certificado_codigo) {
-            $inscricao->update([
-                'certificado_codigo' => InscricaoEvento::gerarCodigoComprovativo(),
-            ]);
-        }
+        // ✅ Garantir código do certificado (emissão formal)
+        $this->garantirCodigoCertificado($inscricao);
 
         try {
             $pdf = Pdf::loadView('pdf.certificado', [
@@ -56,16 +57,27 @@ class CertificadoController extends Controller
                     'defaultFont'          => 'DejaVu Sans',
                 ]);
 
-            $filename = 'certificado_' . Str::slug($egresso->nome_completo) . '_' . Str::slug($inscricao->evento->titulo) . '.pdf';
+            $filename = $this->nomeFicheiro($egresso, $inscricao);
 
             return $pdf->download($filename);
 
         } catch (\Exception $e) {
-            Log::error('Erro ao gerar certificado: ' . $e->getMessage());
+            Log::error('Erro ao gerar certificado: ' . $e->getMessage(), [
+                'inscricao_id' => $inscricao->id,
+                'egresso_id'   => $egresso->id,
+            ]);
+
             return back()->with('error', 'Erro ao gerar certificado. Tente novamente.');
         }
     }
 
+    /**
+     * Pré-visualiza o certificado PDF (stream no browser).
+     *
+     * Aplica as MESMAS regras de elegibilidade do download.
+     * O código é gerado apenas em memória — NÃO é persistido nesta ação,
+     * para que "ver o preview" não constitua emissão formal do certificado.
+     */
     public function preview($inscricaoId)
     {
         $egresso = Auth::user()->egresso;
@@ -80,25 +92,97 @@ class CertificadoController extends Controller
             ->where('egresso_id', $egresso->id)
             ->firstOrFail();
 
-        // ✅ Garantir código
+        // ── Validações de elegibilidade (iguais ao download) ───────────
+        $erro = $this->validarElegibilidade($inscricao);
+
+        if ($erro !== null) {
+            return back()->with('error', $erro);
+        }
+
+        // Preview: usa o código existente se houver; caso contrário gera
+        // um código temporário SEM persistir (não emite formalmente).
+        $codigo = $inscricao->certificado_codigo
+            ?: InscricaoEvento::gerarCodigoComprovativo();
+
+        try {
+            $pdf = Pdf::loadView('pdf.certificado', [
+                    'inscricao' => $inscricao,
+                    'evento'    => $inscricao->evento,
+                    'codigo'    => $codigo,
+                ])
+                ->setPaper('a4', 'landscape')
+                ->setOptions([
+                    'isRemoteEnabled'      => true,
+                    'isHtml5ParserEnabled' => true,
+                    'defaultFont'          => 'DejaVu Sans',
+                ]);
+
+            return $pdf->stream('certificado.pdf');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao pré-visualizar certificado: ' . $e->getMessage(), [
+                'inscricao_id' => $inscricao->id,
+                'egresso_id'   => $egresso->id,
+            ]);
+
+            return back()->with('error', 'Erro ao gerar certificado. Tente novamente.');
+        }
+    }
+
+    /* ================================================================
+     |  Helpers privados
+     ================================================================ */
+
+    /**
+     * Verifica todas as regras de negócio para emissão/visualização
+     * do certificado. Devolve a mensagem de erro, ou null se elegível.
+     */
+    private function validarElegibilidade(InscricaoEvento $inscricao): ?string
+    {
+        $evento = $inscricao->evento;
+
+        // 1. Evento tem data definida e já passou
+        if (!$evento->data_inicio || $evento->data_inicio->isFuture()) {
+            return 'O certificado só fica disponível após o evento.';
+        }
+
+        // 2. Inscrição confirmada
+        if ($inscricao->status !== 'confirmada') {
+            return 'Apenas inscrições confirmadas podem emitir certificado.';
+        }
+
+        // 3. Presença registada
+        if (!$inscricao->presente) {
+            return 'O certificado só é emitido para participantes presentes.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Garante que a inscrição tem um código de certificado persistido.
+     */
+    private function garantirCodigoCertificado(InscricaoEvento $inscricao): void
+    {
         if (!$inscricao->certificado_codigo) {
             $inscricao->update([
                 'certificado_codigo' => InscricaoEvento::gerarCodigoComprovativo(),
             ]);
+            $inscricao->refresh();
         }
+    }
 
-        $pdf = Pdf::loadView('pdf.certificado', [
-                'inscricao' => $inscricao,
-                'evento'    => $inscricao->evento,
-                'codigo'    => $inscricao->certificado_codigo,
-            ])
-            ->setPaper('a4', 'landscape')
-            ->setOptions([
-                'isRemoteEnabled'      => true,
-                'isHtml5ParserEnabled' => true,
-                'defaultFont'          => 'DejaVu Sans',
-            ]);
+    /**
+     * Constrói o nome do ficheiro PDF, com fallbacks seguros.
+     */
+    private function nomeFicheiro($egresso, InscricaoEvento $inscricao): string
+    {
+        $nome  = Str::slug($egresso->nome_completo ?? 'egresso');
+        $titulo = Str::slug($inscricao->evento->titulo ?? 'evento');
 
-        return $pdf->stream('certificado.pdf');
+        $nome   = Str::limit($nome ?: 'egresso', 40, '');
+        $titulo = Str::limit($titulo ?: 'evento', 60, '');
+
+        return "certificado_{$nome}_{$titulo}.pdf";
     }
 }

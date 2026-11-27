@@ -18,7 +18,15 @@
 |   - peerPort         (int)
 |   - peerPath         (string)
 |   - peerSecure       (bool)
-|   - routes: { registarPeer, estado, encerrar }
+|   - routes: { registarPeer, estado, encerrar, iceServers (opcional) }
+|--------------------------------------------------------------------------
+| FASE 1 (fiabilidade):
+|   - ICE/TURN pedidos ao backend (com fallback para a lista abaixo)
+|   - vigilância contínua da ligação (também depois de ligada)
+|   - polling de estado abrandado (5s) durante a chamada
+|   - fim de chamada limpo quando o outro lado desliga / cai
+|   - badge "Em chamada" reposto após reconexão ao PeerServer
+|   - chamada de voz mantém o avatar visível
 |--------------------------------------------------------------------------
 */
 
@@ -47,59 +55,61 @@
     |--------------------------------------------------------------------------
     */
 
-const peerConfig = {
-    host: CONFIG.peerHost || window.location.hostname,
+    const peerConfig = {
+        host: CONFIG.peerHost || window.location.hostname,
 
-    port: Number(
-        CONFIG.peerPort ||
-        (window.location.protocol === 'https:' ? 443 : 9000)
-    ),
+        port: Number(
+            CONFIG.peerPort ||
+            (window.location.protocol === 'https:' ? 443 : 9000)
+        ),
 
-    path: CONFIG.peerPath || '/myapp',
+        path: CONFIG.peerPath || '/myapp',
 
-    secure:
-        typeof CONFIG.peerSecure === 'boolean'
-            ? CONFIG.peerSecure
-            : window.location.protocol === 'https:',
+        secure:
+            typeof CONFIG.peerSecure === 'boolean'
+                ? CONFIG.peerSecure
+                : window.location.protocol === 'https:',
 
-    debug: 2,
+        debug: 2,
 
-    // Heartbeat para não deixar o PeerServer fechar a ligação
-    pingInterval: 5000,
+        // Heartbeat para não deixar o PeerServer fechar a ligação
+        pingInterval: 5000,
 
-    config: {
-        iceServers: [
-            // STUN (rápido, funciona em 80% dos casos)
-            {
-                urls: [
-                    'stun:stun.l.google.com:19302',
-                    'stun:stun1.l.google.com:19302',
-                    'stun:stun2.l.google.com:19302',
-                ]
-            },
-            // TURN grátis (OpenRelay) — ESSENCIAL para telemóvel → PC em redes diferentes
-            {
-                urls: 'turn:openrelay.metered.ca:80',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            }
-        ],
-        iceCandidatePoolSize: 10,
-        iceTransportPolicy: 'all',
-        bundlePolicy: 'max-bundle',
-        rtcpMuxPolicy: 'require',
-    },
-};
+        config: {
+            // Lista por defeito (fallback). Se o backend responder em
+            // routes.iceServers, esta lista é substituída por carregarIceServers().
+            iceServers: [
+                // STUN (rápido, funciona em 80% dos casos)
+                {
+                    urls: [
+                        'stun:stun.l.google.com:19302',
+                        'stun:stun1.l.google.com:19302',
+                        'stun:stun2.l.google.com:19302',
+                    ]
+                },
+                // TURN grátis (OpenRelay) — plano B enquanto o TURN novo não estiver validado
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ],
+            iceCandidatePoolSize: 10,
+            iceTransportPolicy: 'all',
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require',
+        },
+    };
 
     /*
     |--------------------------------------------------------------------------
@@ -180,6 +190,35 @@ const peerConfig = {
 
     /*
     |--------------------------------------------------------------------------
+    | ICE servers (STUN/TURN) vindos do backend
+    |--------------------------------------------------------------------------
+    | Se falhar por qualquer motivo, mantém-se a lista por defeito acima.
+    */
+
+    async function carregarIceServers() {
+        if (!routes.iceServers) return;
+
+        try {
+            const response = await fetch(routes.iceServers, {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+
+            const data = await response.json();
+
+            if (Array.isArray(data.iceServers) && data.iceServers.length) {
+                peerConfig.config.iceServers = data.iceServers;
+                console.log('✅ ICE servers carregados do backend.');
+            }
+        } catch (error) {
+            console.warn('⚠️ ICE: a usar a lista por defeito.', error);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Status
     |--------------------------------------------------------------------------
     */
@@ -203,7 +242,19 @@ const peerConfig = {
 
     function hidePlaceholder() {
         const element = $('placeholder');
-        if (element) element.classList.add('hidden');
+        if (!element) return;
+
+        // Chamada de voz: não há vídeo remoto, por isso mantém o avatar visível
+        if (callType === 'audio') {
+            const spin = element.querySelector('.spinner');
+            const nome = element.querySelector('.placeholder-name');
+
+            if (spin) spin.style.display = 'none';
+            if (nome) nome.textContent = 'Chamada de voz';
+            return;
+        }
+
+        element.classList.add('hidden');
     }
 
     /*
@@ -321,6 +372,11 @@ const peerConfig = {
                 peerId = id;
                 console.log('✅ PeerServer conectado:', id);
                 setText('Ligação segura pronta.');
+
+                // Se reconectou ao PeerServer a meio de uma chamada, repõe o badge
+                if (chamadaConectada && !finalizado) {
+                    setStatus('Em chamada', 'success');
+                }
 
                 try {
                     await post(routes.registarPeer, {
@@ -473,10 +529,7 @@ const peerConfig = {
 
         call.on('close', function () {
             console.log('📴 MediaConnection fechada.');
-            if (!finalizado) {
-                finalizado = true;
-                encerrarLocalmente(false);
-            }
+            finalizarRemoto('Chamada encerrada');
         });
 
         call.on('error', function (error) {
@@ -485,11 +538,12 @@ const peerConfig = {
         });
 
         monitorarPeerConnection(call);
+        vigiarLigacao(call);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Monitorar WebRTC
+    | Monitorar WebRTC (fase de estabelecimento)
     |--------------------------------------------------------------------------
     */
 
@@ -530,6 +584,65 @@ const peerConfig = {
             tentativas++;
             if (tentativas > 60) clearInterval(verificar);
         }, 500);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vigiar a ligação (durante TODA a chamada)
+    |--------------------------------------------------------------------------
+    | Se a ligação ficar instável, dá uns segundos para recuperar sozinha.
+    | Se não recuperar, termina a chamada de forma limpa.
+    | (O PeerJS não renegocia ICE, por isso não usamos restartIce().)
+    */
+
+    function vigiarLigacao(call) {
+        let queda = null;
+        let tentativasAnexar = 0;
+
+        function anexar() {
+            if (finalizado) return;
+
+            const pc = call.peerConnection;
+
+            if (!pc) {
+                tentativasAnexar++;
+                if (tentativasAnexar < 50) setTimeout(anexar, 300);
+                return;
+            }
+
+            pc.addEventListener('iceconnectionstatechange', function () {
+                if (finalizado) return;
+
+                const s = pc.iceConnectionState;
+                console.log('🧊 ICE:', s);
+
+                if (s === 'connected' || s === 'completed') {
+                    if (queda) { clearTimeout(queda); queda = null; }
+                    if (chamadaConectada) setStatus('Em chamada', 'success');
+                    return;
+                }
+
+                if (s === 'disconnected' && !chamadaConectada) return;
+
+                if ((s === 'disconnected' || s === 'failed') && !queda) {
+                    if (chamadaConectada) setStatus('Ligação instável…', 'warning');
+
+                    const espera = (s === 'failed' && !chamadaConectada) ? 5000 : 15000;
+
+                    queda = setTimeout(function () {
+                        queda = null;
+                        if (finalizado) return;
+
+                        const atual = pc.iceConnectionState;
+                        if (atual === 'connected' || atual === 'completed') return;
+
+                        finalizarRemoto('Ligação perdida');
+                    }, espera);
+                }
+            });
+        }
+
+        anexar();
     }
 
     /*
@@ -598,50 +711,48 @@ const peerConfig = {
     |--------------------------------------------------------------------------
     */
 
-function esperarPeerRecetor() {
-    let tentativas = 0;
+    function esperarPeerRecetor() {
+        let tentativas = 0;
 
-    if (peerIdInterval) clearInterval(peerIdInterval);
+        if (peerIdInterval) clearInterval(peerIdInterval);
 
-    peerIdInterval = setInterval(async function () {
-        if (finalizado || chamadaIniciada) {
-            clearInterval(peerIdInterval);
-            peerIdInterval = null;
-            return;
-        }
-
-        tentativas++;
-
-        if (tentativas > 30) {
-            clearInterval(peerIdInterval);
-            peerIdInterval = null;
-            setStatus('Destinatário indisponível', 'danger');
-            setText('O dispositivo do destinatário não está ligado ao PeerServer.');
-            return;
-        }
-
-        try {
-            const data = await post(routes.estado, { room_id: roomId });
-            const remotePeerId = data.peer_id_recetor;
-
-            if (!remotePeerId) return;
-
-            // Para o polling ANTES de chamar
-            clearInterval(peerIdInterval);
-            peerIdInterval = null;
-
-            // Para também o polling de estado — já não precisamos dele
-            if (estadoInterval) {
-                clearInterval(estadoInterval);
-                estadoInterval = null;
+        peerIdInterval = setInterval(async function () {
+            if (finalizado || chamadaIniciada) {
+                clearInterval(peerIdInterval);
+                peerIdInterval = null;
+                return;
             }
 
-            chamarPeer(remotePeerId);
-        } catch (error) {
-            console.warn('Erro ao obter Peer ID:', error);
-        }
-    }, 700);
-}
+            tentativas++;
+
+            if (tentativas > 30) {
+                clearInterval(peerIdInterval);
+                peerIdInterval = null;
+                setStatus('Destinatário indisponível', 'danger');
+                setText('O dispositivo do destinatário não está ligado ao PeerServer.');
+                return;
+            }
+
+            try {
+                const data = await post(routes.estado, { room_id: roomId });
+                const remotePeerId = data.peer_id_recetor;
+
+                if (!remotePeerId) return;
+
+                // Para o polling ANTES de chamar
+                clearInterval(peerIdInterval);
+                peerIdInterval = null;
+
+                // NOTA (Fase 1): o polling de estado NÃO é parado aqui.
+                // Continua (abrandado para 5s depois de ligar) para detetar
+                // que o outro lado encerrou a chamada.
+
+                chamarPeer(remotePeerId);
+            } catch (error) {
+                console.warn('Erro ao obter Peer ID:', error);
+            }
+        }, 700);
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -650,87 +761,93 @@ function esperarPeerRecetor() {
     */
 
     function chamarPeer(remotePeerId) {
-    // Guarda dupla: se já iniciou OU se já existe call ativa, ignora
-    if (chamadaIniciada || currentCall) {
-        console.warn('⚠️ A chamada PeerJS já foi iniciada. Ignorando.');
-        return;
-    }
-
-    if (!peer || peer.destroyed || peer.disconnected) {
-        console.error('❌ Peer não está pronto.');
-        return;
-    }
-
-    if (!localStream) {
-        console.error('❌ Stream local inexistente.');
-        return;
-    }
-
-    chamadaIniciada = true;
-
-    console.log('📞 peer.call() UMA VEZ:', remotePeerId);
-    setStatus('A ligar...', 'warning');
-
-    try {
-        const call = peer.call(remotePeerId, localStream, {
-            metadata: {
-                roomId: roomId,
-                userId: currentUserId,
-                type:   callType
-            }
-        });
-
-        if (!call) {
-            chamadaIniciada = false;
-            console.error('❌ peer.call() falhou.');
+        // Guarda dupla: se já iniciou OU se já existe call ativa, ignora
+        if (chamadaIniciada || currentCall) {
+            console.warn('⚠️ A chamada PeerJS já foi iniciada. Ignorando.');
             return;
         }
 
-        currentCall = call;
-        ligarEventosCall(call);
-    } catch (error) {
-        chamadaIniciada = false;
-        console.error('❌ Exceção em peer.call():', error);
+        if (!peer || peer.destroyed || peer.disconnected) {
+            console.error('❌ Peer não está pronto.');
+            return;
+        }
+
+        if (!localStream) {
+            console.error('❌ Stream local inexistente.');
+            return;
+        }
+
+        chamadaIniciada = true;
+
+        console.log('📞 peer.call() UMA VEZ:', remotePeerId);
+        setStatus('A ligar...', 'warning');
+
+        try {
+            const call = peer.call(remotePeerId, localStream, {
+                metadata: {
+                    roomId: roomId,
+                    userId: currentUserId,
+                    type:   callType
+                }
+            });
+
+            if (!call) {
+                chamadaIniciada = false;
+                console.error('❌ peer.call() falhou.');
+                return;
+            }
+
+            currentCall = call;
+            ligarEventosCall(call);
+        } catch (error) {
+            chamadaIniciada = false;
+            console.error('❌ Exceção em peer.call():', error);
+        }
     }
-}
 
     /*
     |--------------------------------------------------------------------------
     | Estado da chamada — polling
     |--------------------------------------------------------------------------
+    | 1s enquanto a chamada não está ligada; 5s depois de ligada.
+    | Serve também de "sinal de vida" para o backend (ultimo_ping_em).
     */
 
     function iniciarPollingEstado() {
-    if (estadoInterval) clearInterval(estadoInterval);
+        if (estadoInterval) clearInterval(estadoInterval);
 
-    estadoInterval = setInterval(async function () {
-        if (finalizado) {
-            clearInterval(estadoInterval);
-            estadoInterval = null;
-            return;
-        }
+        let lento = false;
 
-        // Se já está em chamada, o polling já não é necessário
-        if (chamadaConectada) {
-            clearInterval(estadoInterval);
-            estadoInterval = null;
-            return;
-        }
-
-        try {
-            const data = await post(routes.estado, { room_id: roomId });
-
-            if (['terminada', 'recusada', 'perdida'].includes(data.status)) {
-                if (!chamadaConectada) {
-                    setStatus('Chamada encerrada', 'danger');
-                }
-                encerrarLocalmente(false);
+        const verificar = async function () {
+            if (finalizado) {
+                clearInterval(estadoInterval);
+                estadoInterval = null;
+                return;
             }
-        } catch (error) {
-            console.warn('Polling:', error);
-        }
-    }, 1000);
-}
+
+            // Já está em chamada: abranda o polling (em vez de o parar)
+            if (chamadaConectada && !lento) {
+                lento = true;
+                clearInterval(estadoInterval);
+                estadoInterval = setInterval(verificar, 5000);
+            }
+
+            try {
+                const data = await post(routes.estado, { room_id: roomId });
+
+                if (['terminada', 'recusada', 'perdida'].includes(data.status)) {
+                    if (!chamadaConectada) {
+                        setStatus('Chamada encerrada', 'danger');
+                    }
+                    finalizarRemoto('Chamada encerrada');
+                }
+            } catch (error) {
+                console.warn('Polling:', error);
+            }
+        };
+
+        estadoInterval = setInterval(verificar, 1000);
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -842,6 +959,31 @@ function esperarPeerRecetor() {
 
     /*
     |--------------------------------------------------------------------------
+    | Fim de chamada causado pelo outro lado / pela rede
+    |--------------------------------------------------------------------------
+    | Mostra o motivo, liberta câmara/microfone, informa o servidor
+    | (idempotente) e volta às mensagens após um instante.
+    */
+
+    async function finalizarRemoto(texto) {
+        if (finalizado) return;
+
+        finalizado = true;
+
+        setStatus(texto, 'danger');
+        setText(texto);
+
+        destruirTudo();
+
+        try { await encerrarServidor(false); } catch (e) {}
+
+        setTimeout(function () {
+            window.location.href = redirectUrl;
+        }, 1500);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Encerrar localmente
     |--------------------------------------------------------------------------
     */
@@ -919,18 +1061,18 @@ function esperarPeerRecetor() {
     |--------------------------------------------------------------------------
     */
 
- window.addEventListener('beforeunload', function () {
-    try {
-        if (navigator.sendBeacon && routes.encerrar && roomId && !finalizado) {
-            const formData = new FormData();
-            formData.append('_token', csrf());
-            formData.append('room_id', roomId);
-            navigator.sendBeacon(routes.encerrar, formData);
-        }
-    } catch (e) {}
+    window.addEventListener('beforeunload', function () {
+        try {
+            if (navigator.sendBeacon && routes.encerrar && roomId && !finalizado) {
+                const formData = new FormData();
+                formData.append('_token', csrf());
+                formData.append('room_id', roomId);
+                navigator.sendBeacon(routes.encerrar, formData);
+            }
+        } catch (e) {}
 
-    destruirTudo();
-});
+        destruirTudo();
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -956,6 +1098,7 @@ function esperarPeerRecetor() {
 
         try {
             await obterMedia();
+            await carregarIceServers();
             await criarPeer();
             iniciarPollingEstado();
 
@@ -971,10 +1114,6 @@ function esperarPeerRecetor() {
         }
     }
 
-    function sair() {
-    destruirTudo();
-    window.location.href = redirectUrl;
-}
     init();
 
 })();

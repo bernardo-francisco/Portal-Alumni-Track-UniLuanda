@@ -117,8 +117,8 @@ class PerfilController extends Controller
             'provincia'       => 'nullable|string|max:100',
             'cidade'          => 'nullable|string|max:100',
             'endereco'        => 'nullable|string|max:255',
-            'latitude'        => 'nullable|string|max:50',
-            'longitude'       => 'nullable|string|max:50',
+            'latitude'  => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
             'data_desde'      => 'nullable|date',
             'is_current'      => 'nullable|boolean',
 

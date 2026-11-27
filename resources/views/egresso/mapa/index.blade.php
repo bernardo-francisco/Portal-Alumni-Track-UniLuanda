@@ -201,7 +201,7 @@
                 </div>
             </div>
             <div class="col-md-4 text-end">
-                <small class="text-muted">🔍 Digite o número de processo <br> <kbd>Ctrl+F</kbd> para focar</small>
+                <small class="text-muted">🔍 Digite o número de processo</small>
             </div>
         </div>
     </div>

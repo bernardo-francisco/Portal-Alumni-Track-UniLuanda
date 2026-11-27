@@ -404,7 +404,7 @@ function bloquearCamposReivindicados() {
             helpEmail.style.fontSize = '11px';
             helpEmail.style.display = 'block';
             helpEmail.style.marginTop = '4px';
-            helpEmail.textContent = '💡 Pode manter este email ou alterá-lo para outro que use atualmente.';
+            helpEmail.textContent = '';
 
             emailInput.parentNode.appendChild(helpEmail);
         }

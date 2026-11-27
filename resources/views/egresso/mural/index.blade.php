@@ -73,84 +73,87 @@
             @endphp
 
             <div class="col-lg-4 col-md-6">
-                <div class="card border-0 shadow-sm h-100 news-card overflow-hidden">
+    <a href="{{ route('egresso.mural.show', $pub->id) }}"
+       class="text-decoration-none text-reset d-block h-100">
+        <div class="card border-0 shadow-sm h-100 news-card overflow-hidden">
 
-                    {{-- Imagem / Header --}}
-                    <div class="news-image-wrapper">
-                        @if($temImagem)
-                            <img src="{{ $imagemUrl }}"
-                                 alt="{{ $pub->titulo }}"
-                                 class="news-image"
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="news-image-placeholder news-image-placeholder-{{ $tipoInfo['color'] }}" style="display: none;">
-                                <i class="fas fa-{{ $tipoInfo['icon'] }}"></i>
-                            </div>
-                        @else
-                            <div class="news-image-placeholder news-image-placeholder-{{ $tipoInfo['color'] }}">
-                                <i class="fas fa-{{ $tipoInfo['icon'] }}"></i>
-                            </div>
-                        @endif
-
-                        {{-- Badges flutuantes --}}
-                        <div class="news-badges">
-                            <span class="badge bg-{{ $tipoInfo['color'] }}">
-                                <i class="fas fa-{{ $tipoInfo['icon'] }} me-1"></i>
-                                {{ $tipoInfo['label'] }}
-                            </span>
-
-                            @if($pub->destaque)
-                                <span class="badge bg-warning text-dark">
-                                    <i class="fas fa-star me-1"></i> Destaque
-                                </span>
-                            @endif
-                        </div>
+            {{-- Imagem / Header --}}
+            <div class="news-image-wrapper">
+                @if($temImagem)
+                    <img src="{{ $imagemUrl }}"
+                         alt="{{ $pub->titulo }}"
+                         class="news-image"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="news-image-placeholder news-image-placeholder-{{ $tipoInfo['color'] }}" style="display: none;">
+                        <i class="fas fa-{{ $tipoInfo['icon'] }}"></i>
                     </div>
-
-                    {{-- Corpo --}}
-                    <div class="card-body d-flex flex-column">
-
-                        {{-- Título --}}
-                        <h6 class="news-title">
-                            {{ $pub->titulo }}
-                        </h6>
-
-                        {{-- Preview --}}
-                        <p class="news-preview">
-                            {{ Str::limit(strip_tags($pub->conteudo), 110) }}
-                        </p>
-
-                        {{-- Meta info --}}
-                        <div class="news-meta">
-                            @if($pub->data_evento)
-                                <div class="news-meta-item">
-                                    <i class="fas fa-calendar-day text-primary"></i>
-                                    <span>{{ $pub->data_evento->format('d/m/Y') }}</span>
-                                </div>
-                            @endif
-
-                            @if($pub->local)
-                                <div class="news-meta-item">
-                                    <i class="fas fa-map-marker-alt text-danger"></i>
-                                    <span class="text-truncate">{{ $pub->local }}</span>
-                                </div>
-                            @endif
-                        </div>
+                @else
+                    <div class="news-image-placeholder news-image-placeholder-{{ $tipoInfo['color'] }}">
+                        <i class="fas fa-{{ $tipoInfo['icon'] }}"></i>
                     </div>
+                @endif
 
-                    {{-- Rodapé --}}
-                    <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i class="far fa-clock me-1"></i>
-                            {{ $pub->data_formatada ?? $pub->created_at->format('d/m/Y') }}
-                        </small>
+                {{-- Badges flutuantes --}}
+                <div class="news-badges">
+                    <span class="badge bg-{{ $tipoInfo['color'] }}">
+                        <i class="fas fa-{{ $tipoInfo['icon'] }} me-1"></i>
+                        {{ $tipoInfo['label'] }}
+                    </span>
 
-                        <span class="news-arrow">
-                            <i class="fas fa-arrow-right"></i>
+                    @if($pub->destaque)
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-star me-1"></i> Destaque
                         </span>
-                    </div>
-
+                    @endif
                 </div>
             </div>
+
+            {{-- Corpo --}}
+            <div class="card-body d-flex flex-column">
+
+                {{-- Título --}}
+                <h6 class="news-title">
+                    {{ $pub->titulo }}
+                </h6>
+
+                {{-- Preview --}}
+                <p class="news-preview">
+                    {{ Str::limit(strip_tags($pub->conteudo), 110) }}
+                </p>
+
+                {{-- Meta info --}}
+                <div class="news-meta">
+                    @if($pub->data_evento)
+                        <div class="news-meta-item">
+                            <i class="fas fa-calendar-day text-primary"></i>
+                            <span>{{ $pub->data_evento->format('d/m/Y') }}</span>
+                        </div>
+                    @endif
+
+                    @if($pub->local)
+                        <div class="news-meta-item">
+                            <i class="fas fa-map-marker-alt text-danger"></i>
+                            <span class="text-truncate">{{ $pub->local }}</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Rodapé --}}
+            <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <i class="far fa-clock me-1"></i>
+                    {{ $pub->data_formatada ?? $pub->created_at->format('d/m/Y') }}
+                </small>
+
+                <span class="news-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+
+        </div>
+    </a>
+</div>
         @endforeach
 
     </div>

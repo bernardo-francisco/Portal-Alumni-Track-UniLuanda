@@ -402,6 +402,41 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- ✅ NOVO: Endereço --}}
+                        @if($localizacao->endereco)
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-icon text-warning">
+                                        <i class="fas fa-map-signs"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <small class="text-muted d-block">Endereço</small>
+                                        <strong class="small text-truncate d-block" title="{{ $localizacao->endereco }}">
+                                            {{ $localizacao->endereco }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- ✅ NOVO: Coordenadas --}}
+                        @if($localizacao->latitude && $localizacao->longitude)
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-icon text-danger">
+                                        <i class="fas fa-crosshairs"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <small class="text-muted d-block">Coordenadas</small>
+                                        <strong class="font-monospace small">
+                                            {{ number_format($localizacao->latitude, 5) }}, 
+                                            {{ number_format($localizacao->longitude, 5) }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @else
                     <div class="text-center py-4">
@@ -666,5 +701,3 @@
 </div>
 
 @endsection
-
-

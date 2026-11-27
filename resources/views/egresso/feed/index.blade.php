@@ -221,9 +221,11 @@
                         <span class="curtidas-count">{{ $publicacao->total_curtidas ?? 0 }}</span>
                     </button>
 
-                    <button type="button" class="btn btn-link text-decoration-none p-0 text-muted">
+                    <button type="button"
+                            class="btn btn-link text-decoration-none p-0 text-muted"
+                            onclick="comentar({{ $publicacao->id }})">
                         <i class="fas fa-comment me-1"></i>
-                        <span>{{ $publicacao->total_comentarios ?? 0 }}</span>
+                        <span class="comentarios-count">{{ $publicacao->total_comentarios ?? 0 }}</span>
                     </button>
                 </div>
 
@@ -339,3 +341,81 @@
     </div>
 </div>
 
+{{-- MODAL COMENTAR --}}
+<div class="modal fade" id="modalComentar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-comments text-primary me-2"></i> Comentários
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                {{-- Publicação original (resumo) --}}
+                <div class="d-flex align-items-start gap-3 mb-3 pb-3 border-bottom">
+                    <div id="comentarAvatar" class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                         style="width: 40px; height: 40px; background: linear-gradient(135deg, #1a56db, #3b82f6); font-size: .95rem;">
+                        ?
+                    </div>
+                    <div class="flex-grow-1 min-width-0">
+                        <div class="fw-bold small" id="comentarNomeAutor">—</div>
+                        <div class="text-muted small text-truncate" id="comentarResumo">—</div>
+                    </div>
+                </div>
+
+                {{-- Lista de comentários --}}
+                <div id="comentariosLista" class="mb-3">
+                    <div class="text-center text-muted py-3" id="comentariosVazio">
+                        <i class="far fa-comment-dots fa-2x mb-2 d-block"></i>
+                        <small>Ainda não há comentários. Sê o primeiro!</small>
+                    </div>
+                </div>
+
+                {{-- Formulário --}}
+                <form id="formComentar" onsubmit="return enviarComentario(event)">
+                    <div class="d-flex align-items-start gap-2">
+                        @php
+                            $egressoAuth2 = Auth::user()->egresso;
+                            $iniciais2 = mb_strtoupper(mb_substr($egressoAuth2->nome_completo ?? 'E', 0, 1));
+                        @endphp
+                        @if($egressoAuth2 && $egressoAuth2->foto_url)
+                            <img src="{{ asset($egressoAuth2->foto_url) }}"
+                                 alt="{{ $egressoAuth2->nome_completo }}"
+                                 class="rounded-circle border flex-shrink-0"
+                                 style="width: 40px; height: 40px; object-fit: cover;">
+                        @else
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                                 style="width: 40px; height: 40px; background: linear-gradient(135deg, #1a56db, #3b82f6); font-size: .95rem;">
+                                {{ $iniciais2 }}
+                            </div>
+                        @endif
+
+                        <div class="flex-grow-1">
+                            <textarea id="comentarioTexto"
+                                      class="form-control bg-light border-0"
+                                      rows="2"
+                                      maxlength="1000"
+                                      placeholder="Escreve um comentário..."
+                                      style="resize: none; border-radius: 12px;"></textarea>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">
+                                    <span id="comentarioContador">0</span>/1000
+                                </small>
+                                <button type="submit" class="btn btn-primary btn-sm px-4" id="btnEnviarComentario">
+                                    <i class="fas fa-paper-plane me-1"></i> Comentar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@push('scripts')
+@vite('resources/js/feed.js')
+@endpush

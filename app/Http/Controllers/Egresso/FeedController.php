@@ -492,4 +492,39 @@ class FeedController extends Controller
             Log::warning('Erro ao notificar autor da publicação: ' . $e->getMessage());
         }
     }
+    
+    /**
+ * Listar comentários de uma publicação (JSON)
+ * Rota: GET /egresso/feed/{publicacao}/comentarios
+ */
+/**
+ * Listar comentários de uma publicação (JSON)
+ * Rota: GET /egresso/feed/{publicacao}/comentarios
+ */
+public function listarComentarios(MuralNoticia $publicacao)
+{
+    $comentarios = $publicacao->muralComentarios()
+        ->with('egresso')
+        ->orderBy('created_at', 'asc')
+        ->get()
+        ->map(function ($c) {
+            return [
+                'id'              => $c->id,
+                'conteudo'        => $c->conteudo,
+                'tempo_decorrido' => $c->created_at->diffForHumans(),
+                'autor' => [
+                    'nome' => $c->egresso->nome_completo ?? 'Egresso',
+                    'foto' => $c->egresso && $c->egresso->foto_url
+                                ? asset($c->egresso->foto_url)
+                                : null,
+                ],
+            ];
+        });
+
+    return response()->json([
+        'success'     => true,
+        'comentarios' => $comentarios,
+        'total'       => $comentarios->count(),
+    ]);
+}
 }

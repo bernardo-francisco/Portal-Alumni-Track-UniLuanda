@@ -189,6 +189,7 @@ class EmpresaDashboardController extends Controller
             'logo_url'    => $empresa->logo_url,
         ]);
 
-        return redirect()->route('empresa.perfil')->with('success', 'Perfil actualizado com sucesso!');
+        // ✅ REDIRECIONA PARA O DASHBOARD APÓS GUARDAR
+        return redirect()->route('empresa.dashboard')->with('success', 'Perfil actualizado com sucesso!');
     }
 }

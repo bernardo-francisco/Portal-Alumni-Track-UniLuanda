@@ -1,0 +1,67 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-KgBSPJ5d.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/css/images/ipgest_entrada.webp": {
+    "file": "assets/ipgest_entrada-BbFAptsM.webp",
+    "src": "resources/css/images/ipgest_entrada.webp"
+  },
+  "resources/css/images/ipgeste_fora.webp": {
+    "file": "assets/ipgeste_fora-DPAo1M6r.webp",
+    "src": "resources/css/images/ipgeste_fora.webp"
+  },
+  "resources/js/admin-mapa.js": {
+    "file": "assets/admin-mapa-BqyHBqmJ.js",
+    "name": "admin-mapa",
+    "src": "resources/js/admin-mapa.js",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-K7TA-Fvo.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/auth.js": {
+    "file": "assets/auth-B0IppAa_.js",
+    "name": "auth",
+    "src": "resources/js/auth.js",
+    "isEntry": true
+  },
+  "resources/js/feed.js": {
+    "file": "assets/feed-XSY0ObUI.js",
+    "name": "feed",
+    "src": "resources/js/feed.js",
+    "isEntry": true
+  },
+  "resources/js/filtros-ajax.js": {
+    "file": "assets/filtros-ajax-DiDDHNU8.js",
+    "name": "filtros-ajax",
+    "src": "resources/js/filtros-ajax.js",
+    "isEntry": true
+  },
+  "resources/js/home.js": {
+    "file": "assets/home-CYv-cDjh.js",
+    "name": "home",
+    "src": "resources/js/home.js",
+    "isEntry": true
+  },
+  "resources/js/notificacoes-egresso.js": {
+    "file": "assets/notificacoes-egresso-DgBPE9Pr.js",
+    "name": "notificacoes-egresso",
+    "src": "resources/js/notificacoes-egresso.js",
+    "isEntry": true
+  },
+  "resources/js/video-call.js": {
+    "file": "assets/video-call-DhWmHYYT.js",
+    "name": "video-call",
+    "src": "resources/js/video-call.js",
+    "isEntry": true
+  }
+}

@@ -203,7 +203,7 @@ Route::post('/apoio-alumni/contacto', [HomeController::class, 'contacto'])
 |                                                                          |
 ==========================================================================*/
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'single.session'])->group(function () {
 
     /*======================================================================
     |                                                                      |
@@ -250,6 +250,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('video-call')->name('video-call.')->group(function () {
         Route::get('/verificar',      [VideoCallController::class, 'verificar'])->name('verificar');
         Route::post('/iniciar',       [VideoCallController::class, 'iniciar'])->name('iniciar');
+        Route::get('/ice-servers',    [VideoCallController::class, 'iceServers'])->name('ice-servers');
         Route::post('/aceitar',       [VideoCallController::class, 'aceitar'])->name('aceitar');
         Route::post('/recusar',       [VideoCallController::class, 'recusar'])->name('recusar');
         Route::post('/estado',        [VideoCallController::class, 'estado'])->name('estado');
@@ -445,6 +446,15 @@ Route::middleware(['auth'])->group(function () {
 
         Route::delete('/feed/comentario/{comentario}', [FeedController::class, 'eliminarComentario'])
             ->name('feed.eliminar.comentario');
+        
+        Route::get('/feed/{publicacao}/comentarios', [FeedController::class, 'listarComentarios'])
+        ->name('feed.comentarios');
+
+        Route::put('/feed/comentario/{comentario}', [FeedController::class, 'editarComentario'])
+         ->name('feed.editar.comentario');
+
+        Route::delete('/feed/comentario/{comentario}', [FeedController::class, 'eliminarComentario'])
+        ->name('feed.eliminar.comentario');
             
 
         // ========================================================
@@ -470,6 +480,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/mural', [EgressoMuralController::class, 'index'])
             ->name('mural.index');
+
+        Route::get('/mural/{publicacao}', [EgressoMuralController::class, 'show'])
+        ->name('mural.show');
+            
 
         // ========================================================
         // 📊 PESQUISAS
@@ -540,9 +554,10 @@ Route::middleware(['auth'])->group(function () {
     |                                                                      |
     ======================================================================*/
 
-    Route::prefix('empresa')
-        ->name('empresa.')
-        ->group(function () {
+Route::middleware(['auth', 'empresa.aprovada'])
+    ->prefix('empresa')
+    ->name('empresa.')
+    ->group(function () {
 
         // Página de pendente
         Route::get('/pendente', [EmpresaDashboardController::class, 'pendente'])->name('pendente');
@@ -562,9 +577,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/candidaturas/{id}', [EmpresaCandidaturaController::class, 'show'])->name('candidaturas.show');
         Route::patch('/candidaturas/{id}/status', [EmpresaCandidaturaController::class, 'actualizarStatus'])->name('candidaturas.status');
 
-         Route::post('/notificacoes/{id}/lida', [NotificacaoController::class, 'marcarLida'])->name('notificacoes.lida');
-         Route::post('/notificacoes/todas-lidas', [NotificacaoController::class, 'marcarTodas'])->name('notificacoes.todas');
+        // Notificações
+        Route::post('/notificacoes/{id}/lida', [NotificacaoController::class, 'marcarLida'])->name('notificacoes.lida');
+        Route::post('/notificacoes/todas-lidas', [NotificacaoController::class, 'marcarTodas'])->name('notificacoes.todas');
    
+        // Chatbot
         Route::post('/chatbot/enviar', [\App\Http\Controllers\Empresa\ChatbotController::class, 'enviar'])->name('chatbot.enviar');
         Route::get('/chatbot/verificar', [\App\Http\Controllers\Empresa\ChatbotController::class, 'verificar'])->name('chatbot.verificar');
     });

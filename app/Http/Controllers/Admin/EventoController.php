@@ -153,7 +153,7 @@ class EventoController extends Controller
             'descricao' => 'nullable|string',
             'tipo' => 'required|in:presencial,online,hibrido',
             'categoria' => 'required|in:workshop,palestra,networking,job_fair,curso,outro',
-            'data_inicio' => 'required|date',
+            'data_inicio' => 'required|date|after:now',
             'data_fim' => 'nullable|date|after:data_inicio',
             'local' => 'nullable|string|max:200',
             'link_reuniao' => 'nullable|url|max:255',

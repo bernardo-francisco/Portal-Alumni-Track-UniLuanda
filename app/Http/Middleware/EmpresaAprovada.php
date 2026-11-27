@@ -15,8 +15,17 @@ class EmpresaAprovada
         if ($user && $user->isEmpresa()) {
             $empresa = $user->empresa;
 
-            if (!$empresa || !$empresa->isAprovada()) {
-                return redirect()->route('empresa.pendente');
+            if ($empresa && !$empresa->isAprovada()) {
+                
+                // ✅ Exceções: Página de pendente, logout, e as rotas do Perfil
+                if (
+                    !$request->routeIs('empresa.pendente') && 
+                    !$request->routeIs('logout') &&
+                    !$request->routeIs('empresa.perfil') && 
+                    !$request->routeIs('empresa.perfil.update')
+                ) {
+                    return redirect()->route('empresa.pendente');
+                }
             }
         }
 

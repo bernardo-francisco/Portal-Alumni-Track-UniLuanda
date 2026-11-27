@@ -139,7 +139,8 @@
                 @endphp
 
                 <div class="notification-item {{ $naoLida ? 'notification-unread' : '' }} {{ !$loop->last ? 'border-bottom' : '' }}"
-                     data-notif-id="{{ $notificacao->id }}">
+                     data-notif-id="{{ $notificacao->id }}"
+                     id="notif-item-{{ $notificacao->id }}">
 
                     <div class="d-flex align-items-start gap-3">
 
@@ -193,7 +194,7 @@
                                 @if($naoLida)
                                     <button type="button"
                                             class="btn btn-sm btn-outline-secondary btn-marcar-lida"
-                                            onclick="marcarComoLida({{ $notificacao->id }}, this)">
+                                            onclick="marcarNotifEgresso({{ $notificacao->id }})">
                                         <i class="fas fa-check me-1"></i> Marcar como lida
                                     </button>
                                 @else
@@ -251,3 +252,6 @@
 
 @endsection
 
+@push('scripts')
+    @vite('resources/js/notificacoes-egresso.js')
+@endpush

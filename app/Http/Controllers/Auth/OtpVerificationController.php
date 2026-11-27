@@ -7,7 +7,6 @@ use App\Models\Egresso;
 use App\Models\OtpCode;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -15,10 +14,10 @@ use Illuminate\Support\Str;
 class OtpVerificationController extends Controller
 {
     /**
-     * ============================================================
      * Mostra o ecrã de verificação de OTP
-     * ============================================================
-     * Rota: GET /registar/verificar-otp?email=xxx
+     */
+        /**
+     * Mostra o ecrã de verificação de OTP
      */
     public function showForm(Request $request)
     {
@@ -26,9 +25,13 @@ class OtpVerificationController extends Controller
 
         // Validação básica
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return redirect()
-                ->route('register')
-                ->with('error', 'Sessão inválida. Por favor, reinicie o registo.');
+            return redirect('/login'); // Vai para o login sem mensagem assustadora
+        }
+
+        // ✅ NOVO: Verificar se a conta já está ativa.
+        $user = User::where('email', $email)->first();
+        if ($user && $user->is_active && $user->email_verified_at !== null) {
+            return redirect('/login'); // Já está ativa, vai para o login limpo
         }
 
         // Verificar se há OTP pendente para este email
@@ -38,9 +41,9 @@ class OtpVerificationController extends Controller
             ->first();
 
         if (!$otp) {
-            return redirect()
-                ->route('register')
-                ->with('error', 'Não há código de verificação ativo para este email. Por favor, reinicie o registo.');
+            // Se o código já foi usado ou expirou, manda para o login sem mensagem de erro.
+            // O utilizador provavelmente já tem a conta criada.
+            return redirect('/login'); 
         }
 
         return view('auth.verify-otp', [
@@ -48,18 +51,11 @@ class OtpVerificationController extends Controller
             'expira_em'  => $otp->expires_at,
         ]);
     }
-
     /**
-     * ============================================================
      * Valida o OTP e ativa a conta
-     * ============================================================
-     * Rota: POST /registar/verificar-otp
      */
     public function verify(Request $request)
     {
-        // ============================================================
-        // VALIDAÇÃO
-        // ============================================================
         $request->validate([
             'email' => 'required|email',
             'code'  => 'required|string|size:6',
@@ -68,9 +64,6 @@ class OtpVerificationController extends Controller
         $email = $request->input('email');
         $code  = trim($request->input('code'));
 
-        // ============================================================
-        // BUSCAR OTP VÁLIDO
-        // ============================================================
         $otp = OtpCode::paraEmail($email, 'reclamar_conta')
             ->validos()
             ->where('code', $code)
@@ -89,9 +82,6 @@ class OtpVerificationController extends Controller
                 ->with('error', '❌ Código inválido ou expirado. Verifique e tente novamente.');
         }
 
-        // ============================================================
-        // ATIVAR A CONTA
-        // ============================================================
         try {
             DB::beginTransaction();
 
@@ -122,11 +112,9 @@ class OtpVerificationController extends Controller
                 'status'           => 'active',
                 'verificado'       => true,
                 'data_verificacao' => now(),
-
-                // Marcar como reivindicado agora
-                'claimed_at'         => now(),
-                'claimed_ip'         => $request->ip(),
-                'claimed_user_agent' => Str::limit((string) $request->userAgent(), 500),
+                'claimed_at'       => now(),
+                'claimed_ip'       => $request->ip(),
+                'claimed_user_agent'=> Str::limit((string) $request->userAgent(), 500),
             ]);
 
             // 3. Marcar o OTP como usado
@@ -144,14 +132,10 @@ class OtpVerificationController extends Controller
                 'user_id'    => $user->id,
                 'egresso_id' => $egresso->id,
                 'email'      => $email,
-                'ip'         => $request->ip(),
             ]);
 
-            // ========================================================
-            // REDIRECIONAR PARA LOGIN COM SUCESSO
-            // ========================================================
-            return redirect()
-                ->route('login')
+            // ✅ FORÇA O REDIRECIONAMENTO ABSOLUTO PARA O LOGIN
+            return redirect('/login')
                 ->with('success', '✅ Conta ativada com sucesso! Faça login com o seu email e senha.');
 
         } catch (\Exception $e) {
@@ -160,7 +144,6 @@ class OtpVerificationController extends Controller
             Log::error('❌ Erro ao ativar conta via OTP', [
                 'message' => $e->getMessage(),
                 'email'   => $email,
-                'ip'      => $request->ip(),
             ]);
 
             return back()

@@ -32,6 +32,18 @@ class LoginController extends Controller
         $user = Auth::user();
 
         // =============================================
+        // 🔐 SESSÃO ÚNICA — guardar o ID da sessão atual
+        // =============================================
+        // A partir deste momento, qualquer sessão anterior
+        // deste utilizador noutro dispositivo será invalidada.
+        // =============================================
+        $user->forceFill([
+            'session_id'    => $request->session()->getId(),
+            'last_login_at' => now(),
+            'last_login'    => now(),
+        ])->save();
+
+        // =============================================
         // REDIRECIONAMENTO INTELIGENTE POR TIPO
         // =============================================
 
@@ -133,6 +145,14 @@ class LoginController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // 🔐 Limpar session_id ao fazer logout explícito
+        if ($user) {
+            $user->forceFill(['session_id' => null])->save();
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -33,17 +33,23 @@
                 <p>Login diferenciado, digite seus dados para continuar.</p>
             </div>
 
-            @if ($errors->any())
-                <div class="error-message">
-                    {{ $errors->first() }}
-                </div>
-            @endif
+                @if ($errors->any())
+                    <div class="error-message">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
 
-            @if(session('error'))
-                <div class="error-message">
-                    {{ session('error') }}
-                </div>
-            @endif
+                {{-- ✅ Sessão invalidada por single.session (2 browsers/dispositivos) --}}
+                @if(session('session_invalidated'))
+                    <div class="error-message">
+                        {{ session('session_invalidated') }}
+                    </div>
+                @elseif(session('error'))
+                    <div class="error-message">
+                        {{ session('error') }}
+                    </div>
+                @endif
+            
 
                     @if(session('status'))
                 <div class="success-message">

@@ -127,13 +127,13 @@
         </tbody>
     </table>
 
-    {{-- MAPA --}}
+    {{-- MAPA (AGORA COM OPENSTREETMAP VIA GEOAPIFY) --}}
     @if(!empty($mapaBase64))
         <div class="section-title">Mapa Geral de Localização</div>
         <div style="text-align: center; margin-top: 10px;">
-            <img src="{{ $mapaBase64 }}" alt="Mapa" style="max-width: 100%; height: auto;">
+            <img src="{{ $mapaBase64 }}" alt="Mapa" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
             <p style="font-size: 7.5px; color: #6c757d; margin-top: 4px;">
-                <span style="color: #dc3545;">●</span> Localização do Egresso
+                <i class="fas fa-map-marker-alt text-primary"></i> Localização dos Egressos (OpenStreetMap).
             </p>
         </div>
     @else

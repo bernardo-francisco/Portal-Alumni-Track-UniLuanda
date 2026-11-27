@@ -20,6 +20,12 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'turn' => [
+    'urls'       => env('TURN_URLS'),
+    'username'   => env('TURN_USERNAME'),
+    'credential' => env('TURN_CREDENTIAL'),
+],
+
     // ✅ PeerServer
     'peer' => [
         'host'   => env('PEER_HOST', 'localhost'),

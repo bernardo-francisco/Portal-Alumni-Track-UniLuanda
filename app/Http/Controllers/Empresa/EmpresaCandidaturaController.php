@@ -81,7 +81,7 @@ class EmpresaCandidaturaController extends Controller
 
         $request->validate([
             'status' => 'required|in:pendente,em_analise,entrevista,aprovado,aceite,rejeitado',
-            'data_entrevista' => 'nullable|date',
+            'data_entrevista' => 'nullable|date|after:now',
             'local_entrevista' => 'nullable|string|max:255',
             'motivo_rejeicao' => 'nullable|string',
         ]);

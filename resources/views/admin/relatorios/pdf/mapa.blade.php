@@ -7,7 +7,7 @@
 @section('content')
 
     <div class="doc-title">Relatório do Mapa de Localizações</div>
-    <div class="doc-subtitle">Documento emitido automaticamente pelo sistema UniLuanda Alumni Track</div>
+    <div class="doc-subtitle">Distribuição geográfica dos egressos na plataforma UniLuanda Alumni</div>
 
     {{-- RESUMO --}}
     <table class="stats-table">
@@ -31,19 +31,6 @@
         </tr>
     </table>
 
-    {{-- MAPA --}}
-    @if($mapaBase64)
-        <div class="section-title">Mapa de Distribuição Geográfica</div>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ $mapaBase64 }}" alt="Mapa" style="max-width: 100%; border: 1px solid #e2e8f0; border-radius: 8px;">
-        </div>
-    @else
-        <div class="section-title">Mapa de Distribuição Geográfica</div>
-        <p style="text-align: center; color: #94a3b8; padding: 20px;">
-            Não foi possível gerar o mapa (sem coordenadas ou serviço indisponível).
-        </p>
-    @endif
-
     {{-- POR PAÍS --}}
     <div class="section-title">Distribuição por País</div>
     <table class="report-table">
@@ -66,7 +53,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="4" class="text-center text-muted" style="padding: 15px;">Sem dados.</td></tr>
+                <tr><td colspan="4" class="text-center text-muted" style="padding: 15px;">Sem dados de países.</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -95,7 +82,7 @@
     @endif
 
     {{-- LISTA COMPLETA --}}
-    <div class="section-title">Lista de Localizações</div>
+    <div class="section-title">Lista Detalhada de Localizações</div>
     <table class="report-table">
         <colgroup>
             <col style="width: 4%;">
@@ -136,5 +123,20 @@
             @endforelse
         </tbody>
     </table>
+
+    {{-- MAPA (NO FINAL) --}}
+    <div class="section-title" style="margin-top: 30px;">Mapa de Distribuição Geográfica</div>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        @if($mapaBase64)
+            {{-- A imagem agora vem do Geoapify (OpenStreetMap), num formato 800x500 --}}
+            <img src="{{ $mapaBase64 }}" alt="Mapa de Distribuição Geográfica" style="width: 100%; max-width: 800px; height: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+        @else
+            <div style="padding: 30px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b;">
+                <i class="fas fa-map-marked-alt" style="font-size: 24px; margin-bottom: 10px; color: #94a3b8;"></i>
+                <p style="margin: 0;">Não foi possível gerar o mapa (sem coordenadas ou serviço temporariamente indisponível).</p>
+            </div>
+        @endif
+    </div>
 
 @endsection
