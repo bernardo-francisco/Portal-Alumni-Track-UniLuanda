@@ -15,6 +15,6 @@ yarn.lock
 .gitignore
 
 # Ignorar pastas de build locais
-public/build
+# public/build          <-- APAGUE OU COMENTE ESTA LINHA
 storage/logs/*
 !storage/logs/.gitignore
