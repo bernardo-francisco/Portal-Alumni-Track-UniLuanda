@@ -630,7 +630,7 @@
                     <label for="admin_code">Código de Autorização Admin <span class="required-star">*</span></label>
                     <div class="field">
                         <input id="admin_code" name="admin_code" type="password"
-                               placeholder="Código: UNILUNDA2024"
+                               placeholder="Introduza o código"
                                value="{{ old('admin_code') }}">
                     </div>
                     <small class="text-muted">Código fornecido pela administração</small>
