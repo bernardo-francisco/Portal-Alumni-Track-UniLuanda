@@ -14,8 +14,8 @@
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "^3.1",
         "propaganistas/laravel-disposable-email": "^2.5",
-        "resend/resend-laravel": "^1.7",
-        "spatie/laravel-permission": "^6.25"
+        "spatie/laravel-permission": "^6.25",
+        "symfony/brevo-mailer": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
